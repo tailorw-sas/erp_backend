@@ -10,15 +10,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 
@@ -51,13 +48,20 @@ public class PaymentDetail implements Serializable {
     @JoinColumn(name = "transaction_type_id")
     private ManagePaymentTransactionType transactionType;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "manage_booking_id")
+    private ManageBooking manageBooking;
+
     private Double amount;
     private Double applyDepositValue;
     private String remark;
 
+    @Column(columnDefinition = "boolean DEFAULT FALSE")
+    private Boolean applayPayment;
+
     private Double bookingId;
     private String invoiceId;
-    private LocalDate transactionDate;
+    private OffsetDateTime transactionDate;
     private String firstName;
     private String lastName;
     private String reservation;
@@ -68,12 +72,17 @@ public class PaymentDetail implements Serializable {
     @OneToMany(fetch = FetchType.EAGER)
     private List<PaymentDetail> children = new ArrayList<>();
 
-    @CreationTimestamp
+    //@CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(nullable = true, updatable = true)
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
+
+    @PrePersist
+    protected void prePersist() {
+        this.createdAt = OffsetDateTime.now(ZoneId.of("UTC"));
+    }
 
     public PaymentDetail(PaymentDetailDto dto) {
         this.id = dto.getId();
@@ -98,6 +107,8 @@ public class PaymentDetail implements Serializable {
         this.childrens = dto.getChildrens() != null ? dto.getChildrens() : null;
         this.parentId = dto.getParentId() != null ? dto.getParentId() : null;
         this.applyDepositValue = dto.getApplyDepositValue() != null ? ScaleAmount.scaleAmount(dto.getApplyDepositValue()) : null;
+        this.manageBooking = dto.getManageBooking() != null ? new ManageBooking(dto.getManageBooking()) : null;
+        this.applayPayment = dto.getApplayPayment();
     }
 
     public PaymentDetailDto toAggregate() {
@@ -110,6 +121,7 @@ public class PaymentDetail implements Serializable {
                 amount,
                 remark,
                 children != null ? children.stream().map(PaymentDetail::toAggregateSimple).toList() : null,
+                manageBooking != null ? manageBooking.toAggregate() : null,
                 bookingId,
                 invoiceId,
                 transactionDate,
@@ -122,7 +134,8 @@ public class PaymentDetail implements Serializable {
                 createdAt,
                 paymentDetailId,
                 parentId,
-                applyDepositValue
+                applyDepositValue,
+                applayPayment
         );
     }
 
@@ -136,6 +149,7 @@ public class PaymentDetail implements Serializable {
                 amount,
                 remark,
                 null,
+                manageBooking != null ? manageBooking.toAggregate() : null,
                 bookingId != null ? bookingId : null,
                 invoiceId != null ? invoiceId : null,
                 transactionDate != null ? transactionDate : null,
@@ -148,7 +162,36 @@ public class PaymentDetail implements Serializable {
                 createdAt,
                 paymentDetailId,
                 parentId,
-                applyDepositValue
+                applyDepositValue,
+                applayPayment
+        );
+    }
+
+    public PaymentDetailDto toAggregateSimpleNotPayment() {
+
+        return new PaymentDetailDto(
+                id,
+                status,
+                null,
+                transactionType.toAggregate(),
+                amount,
+                remark,
+                null,
+                manageBooking != null ? manageBooking.toAggregate() : null,
+                bookingId != null ? bookingId : null,
+                invoiceId != null ? invoiceId : null,
+                transactionDate != null ? transactionDate : null,
+                firstName != null ? firstName : null,
+                lastName != null ? lastName : null,
+                reservation != null ? reservation : null,
+                couponNo != null ? couponNo : null,
+                adults != null ? adults : null,
+                childrens != null ? childrens : null,
+                createdAt,
+                paymentDetailId,
+                parentId,
+                applyDepositValue,
+                applayPayment
         );
     }
 }

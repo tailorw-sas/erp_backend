@@ -62,6 +62,27 @@ public class ManageBookingServiceImpl implements IManageBookingService {
     }
 
     @Override
+    public void calculateHotelAmount(ManageBookingDto dto){
+        Double HotelAmount = 0.00;
+
+
+
+
+        if (dto.getRoomRates() != null) {
+
+            for (int i = 0; i < dto.getRoomRates().size(); i++) {
+
+                HotelAmount += dto.getRoomRates().get(i).getHotelAmount();
+
+            }
+
+            dto.setHotelAmount(HotelAmount);
+
+            this.update(dto);
+        }
+    }
+
+    @Override
     public UUID create(ManageBookingDto dto) {
         ManageBooking entity = new ManageBooking(dto);
         return repositoryCommand.saveAndFlush(entity).getId();
@@ -86,8 +107,8 @@ public class ManageBookingServiceImpl implements IManageBookingService {
     }
 
     @Override
-    public boolean existsByExactLastTwoChars(String lastTwoChars, UUID hotelId) {
-        boolean exists = this.repositoryQuery.existsByExactLastTwoChars(lastTwoChars, hotelId);
+    public boolean existsByExactLastChars(String lastChars, UUID hotelId) {
+        boolean exists = this.repositoryQuery.existsByExactLastChars(lastChars, hotelId);
 
         return exists;
     }
@@ -142,6 +163,14 @@ public class ManageBookingServiceImpl implements IManageBookingService {
                 try {
                     Status enumValue = Status.valueOf((String) filter.getValue());
                     filter.setValue(enumValue);
+                } catch (IllegalArgumentException e) {
+                    System.err.println("Valor inválido para el tipo Enum Status: " + filter.getValue());
+                }
+            }
+
+            if ("dueAmount".equals(filter.getKey()) && filter.getValue() instanceof String) {
+                try {
+                    filter.setValue(Double.valueOf(filter.getValue().toString()));
                 } catch (IllegalArgumentException e) {
                     System.err.println("Valor inválido para el tipo Enum Status: " + filter.getValue());
                 }

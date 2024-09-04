@@ -4,6 +4,9 @@ import com.kynsof.share.core.domain.request.PageableUtil;
 import com.kynsof.share.core.domain.request.SearchRequest;
 import com.kynsof.share.core.domain.response.PaginatedResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.finamer.invoicing.application.command.attachmentStatusHistory.create.CreateAttachmentStatusHistoryCommand;
+import com.kynsoft.finamer.invoicing.application.command.invoiceStatusHistory.create.CreateInvoiceStatusHistoryCommand;
+import com.kynsoft.finamer.invoicing.application.command.manageAttachment.create.CreateAttachmentMessage;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.calculateInvoiceAmount.CalculateInvoiceAmountCommand;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.create.CreateInvoiceCommand;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.create.CreateInvoiceMessage;
@@ -13,6 +16,15 @@ import com.kynsoft.finamer.invoicing.application.command.manageInvoice.createBul
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.createBulk.CreateBulkInvoiceRequest;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.delete.DeleteInvoiceCommand;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.delete.DeleteInvoiceMessage;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.newCredit.CreateNewCreditCommand;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.newCredit.CreateNewCreditMessage;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.newCredit.CreateNewCreditRequest;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.partialClone.PartialCloneInvoiceCommand;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.partialClone.PartialCloneInvoiceMessage;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.partialClone.PartialCloneInvoiceRequest;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.totalClone.TotalCloneInvoiceCommand;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.totalClone.TotalCloneInvoiceMessage;
+import com.kynsoft.finamer.invoicing.application.command.manageInvoice.totalClone.TotalCloneInvoiceRequest;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.update.UpdateInvoiceCommand;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.update.UpdateInvoiceMessage;
 import com.kynsoft.finamer.invoicing.application.command.manageInvoice.update.UpdateInvoiceRequest;
@@ -48,7 +60,8 @@ public class InvoiceController {
         FindInvoiceByIdQuery query = new FindInvoiceByIdQuery(response.getId());
         ManageInvoiceResponse resp = mediator.send(query);
 
-        this.mediator.send(new UpdateInvoiceCommand(response.getId(), null, null, null, null, null, null,null, null, null, null));
+        this.mediator.send(
+                new UpdateInvoiceCommand(response.getId(), null, null, null, null, null, null, null, null, null, null));
         return ResponseEntity.ok(response);
     }
 
@@ -66,7 +79,48 @@ public class InvoiceController {
                     return rr.getId();
                 }).collect(Collectors.toList())));
 
-        
+        this.mediator.send(new CreateInvoiceStatusHistoryCommand(message.getId(), command.getEmployee()));
+
+        for (CreateAttachmentMessage attachmentMessage : message.getAttachmentMessages()) {
+            this.mediator.send(new CreateAttachmentStatusHistoryCommand(attachmentMessage.getId()));
+        }
+
+        return ResponseEntity.ok(message);
+
+    }
+
+    @PostMapping("total-clone")
+    public ResponseEntity<TotalCloneInvoiceMessage> totalCloneInvoice(@RequestBody TotalCloneInvoiceRequest request) {
+
+        TotalCloneInvoiceCommand command = TotalCloneInvoiceCommand.fromRequest(request);
+
+        TotalCloneInvoiceMessage message = this.mediator.send(command);
+
+        this.mediator.send(new CreateInvoiceStatusHistoryCommand(message.getId(), command.getEmployee()));
+
+        for (CreateAttachmentMessage attachmentMessage : message.getAttachmentMessages()) {
+            this.mediator.send(new CreateAttachmentStatusHistoryCommand(attachmentMessage.getId()));
+        }
+
+        return ResponseEntity.ok(message);
+
+    }
+
+    @PostMapping("partial-clone")
+    public ResponseEntity<PartialCloneInvoiceMessage> createBulk(@RequestBody PartialCloneInvoiceRequest request) {
+
+        PartialCloneInvoiceCommand command = PartialCloneInvoiceCommand.fromRequest(request);
+
+        PartialCloneInvoiceMessage message = this.mediator.send(command);
+
+        this.mediator.send(
+                new CalculateInvoiceAmountCommand(message.getCloned(), command.getBookings(), command.getRoomRates()));
+
+        this.mediator.send(new CreateInvoiceStatusHistoryCommand(message.getCloned(), command.getEmployee()));
+
+        for (UUID attacmhment : command.getAttachments()) {
+            this.mediator.send(new CreateAttachmentStatusHistoryCommand(attacmhment));
+        }
 
         return ResponseEntity.ok(message);
 
@@ -120,6 +174,14 @@ public class InvoiceController {
 
         UpdateInvoiceCommand command = UpdateInvoiceCommand.fromRequest(request, id);
         UpdateInvoiceMessage response = mediator.send(command);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/new-credit")
+    public ResponseEntity<?> newCredit(@RequestBody CreateNewCreditRequest request){
+        CreateNewCreditCommand command = CreateNewCreditCommand.fromRequest(request);
+        CreateNewCreditMessage response = this.mediator.send(command);
+
         return ResponseEntity.ok(response);
     }
 }

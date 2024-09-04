@@ -67,6 +67,11 @@ public class ManagePaymentTransactionTypeServiceImpl implements IManagePaymentTr
     }
 
     @Override
+    public ManagePaymentTransactionTypeDto findByCode(String code) {
+            return repositoryQuery.findByCode(code).map(ManagePaymentTransactionType::toAggregate).orElse(null);
+    }
+
+    @Override
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria) {
         filterCriteria(filterCriteria);
 
@@ -98,6 +103,36 @@ public class ManagePaymentTransactionTypeServiceImpl implements IManagePaymentTr
 
         return new PaginatedResponse(responses, data.getTotalPages(), data.getNumberOfElements(),
                 data.getTotalElements(), data.getSize(), data.getNumber());
+    }
+
+    @Override
+    public ManagePaymentTransactionTypeDto findByPaymentInvoice() {
+        Optional<ManagePaymentTransactionType> optionalEntity = repositoryQuery.findByPaymentInvoice();
+        if (optionalEntity.isPresent()) {
+            return optionalEntity.get().toAggregate();
+        }
+
+        throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND, new ErrorField("id", DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND.getReasonPhrase())));
+    }
+
+    @Override
+    public ManagePaymentTransactionTypeDto findByDeposit() {
+        Optional<ManagePaymentTransactionType> optionalEntity = repositoryQuery.findByDeposit();
+        if (optionalEntity.isPresent()) {
+            return optionalEntity.get().toAggregate();
+        }
+
+        throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND, new ErrorField("id", DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND.getReasonPhrase())));
+    }
+
+    @Override
+    public ManagePaymentTransactionTypeDto findByApplyDeposit() {
+        Optional<ManagePaymentTransactionType> optionalEntity = repositoryQuery.findByApplyDeposit();
+        if (optionalEntity.isPresent()) {
+            return optionalEntity.get().toAggregate();
+        }
+
+        throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND, new ErrorField("id", DomainErrorMessage.MANAGE_PAYMENT_TRANSACTION_TYPE_NOT_FOUND.getReasonPhrase())));
     }
 
 }

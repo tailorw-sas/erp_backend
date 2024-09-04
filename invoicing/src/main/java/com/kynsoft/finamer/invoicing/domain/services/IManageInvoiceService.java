@@ -26,4 +26,8 @@ public interface IManageInvoiceService {
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
 
     List<ManageInvoiceDto> findByIds(List<UUID> ids);
+
+    List<ManageInvoiceDto> findAllToReplicate();
+
+    Double findSumOfAmountByParentId(UUID parentId);
 }

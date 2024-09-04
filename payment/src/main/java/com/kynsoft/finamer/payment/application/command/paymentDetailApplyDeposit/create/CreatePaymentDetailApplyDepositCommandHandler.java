@@ -5,12 +5,11 @@ import com.kynsof.share.core.domain.bus.command.ICommandHandler;
 import com.kynsof.share.core.domain.rules.ValidateObjectNotNullRule;
 import com.kynsof.share.utils.ConsumerUpdate;
 import com.kynsof.share.utils.UpdateIfNotNull;
+import com.kynsoft.finamer.payment.application.command.paymentDetail.applyPayment.ApplyPaymentDetailCommand;
 import com.kynsoft.finamer.payment.domain.dto.ManageEmployeeDto;
 import com.kynsoft.finamer.payment.domain.dto.ManagePaymentTransactionTypeDto;
 import com.kynsoft.finamer.payment.domain.dto.PaymentDetailDto;
 import com.kynsoft.finamer.payment.domain.dto.PaymentDto;
-import com.kynsoft.finamer.payment.domain.dto.PaymentStatusHistoryDto;
-import com.kynsoft.finamer.payment.domain.rules.paymentDetail.CheckAmountIfDepositBalanceGreaterThanZeroRule;
 import com.kynsoft.finamer.payment.domain.rules.paymentDetail.CheckApplyDepositRule;
 import com.kynsoft.finamer.payment.domain.rules.paymentDetail.CheckDepositToApplyDepositRule;
 import com.kynsoft.finamer.payment.domain.rules.paymentDetail.CheckGreaterThanOrEqualToTheTransactionAmountRule;
@@ -20,10 +19,12 @@ import com.kynsoft.finamer.payment.domain.services.IManagePaymentTransactionType
 import com.kynsoft.finamer.payment.domain.services.IPaymentDetailService;
 import com.kynsoft.finamer.payment.domain.services.IPaymentService;
 import com.kynsoft.finamer.payment.domain.services.IPaymentStatusHistoryService;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Objects;
+
 import org.springframework.stereotype.Component;
 
 @Component
@@ -38,10 +39,10 @@ public class CreatePaymentDetailApplyDepositCommandHandler implements ICommandHa
     private final IPaymentStatusHistoryService paymentAttachmentStatusHistoryService;
 
     public CreatePaymentDetailApplyDepositCommandHandler(IPaymentDetailService paymentDetailService,
-                                             IManagePaymentTransactionTypeService paymentTransactionTypeService,
-                                             IPaymentService paymentService,
-                                             IManageEmployeeService manageEmployeeService,
-                                             IPaymentStatusHistoryService paymentAttachmentStatusHistoryService) {
+            IManagePaymentTransactionTypeService paymentTransactionTypeService,
+            IPaymentService paymentService,
+            IManageEmployeeService manageEmployeeService,
+            IPaymentStatusHistoryService paymentAttachmentStatusHistoryService) {
         this.paymentDetailService = paymentDetailService;
         this.paymentTransactionTypeService = paymentTransactionTypeService;
         this.paymentService = paymentService;
@@ -71,11 +72,12 @@ public class CreatePaymentDetailApplyDepositCommandHandler implements ICommandHa
         //UpdateIfNotNull.updateDouble(paymentUpdate::setPaymentBalance, paymentUpdate.getPaymentBalance() + (- paymentDetailDto.getAmount()), updatePayment::setUpdate);
 
         UpdateIfNotNull.updateDouble(paymentUpdate::setDepositBalance, paymentUpdate.getDepositBalance() - command.getAmount(), updatePayment::setUpdate);
+        UpdateIfNotNull.updateDouble(paymentUpdate::setNotApplied, paymentUpdate.getNotApplied() + command.getAmount(), updatePayment::setUpdate);
         UpdateIfNotNull.updateDouble(paymentUpdate::setIdentified, paymentUpdate.getIdentified() + command.getAmount(), updatePayment::setUpdate);
         UpdateIfNotNull.updateDouble(paymentUpdate::setNotIdentified, paymentUpdate.getPaymentAmount() - paymentUpdate.getIdentified(), updatePayment::setUpdate);
 
         //TODO: Se debe de validar esta variable para que cumpla con el Close Operation
-        LocalDate transactionDate = LocalDate.now();
+        OffsetDateTime transactionDate = OffsetDateTime.now(ZoneId.of("UTC"));
         PaymentDetailDto children = new PaymentDetailDto(
                 command.getId(),
                 command.getStatus(),
@@ -92,11 +94,12 @@ public class CreatePaymentDetailApplyDepositCommandHandler implements ICommandHa
                 null,
                 null,
                 null,
-                null
+                null,
+                false
         );
 
         children.setParentId(paymentDetailDto.getPaymentDetailId());
-        Long paymentDetailId = this.paymentDetailService.create(children);
+        this.paymentDetailService.create(children);
 
         List<PaymentDetailDto> updateChildrens = new ArrayList<>();
         updateChildrens.addAll(paymentDetailDto.getChildren());
@@ -106,6 +109,11 @@ public class CreatePaymentDetailApplyDepositCommandHandler implements ICommandHa
         paymentDetailService.update(paymentDetailDto);
 
         this.paymentService.update(paymentUpdate);
+
+        if (Objects.nonNull(command.getApplyPayment()) && command.getApplyPayment()) {
+            command.getMediator().send(new ApplyPaymentDetailCommand(command.getId(), command.getBooking()));
+        }
+
 //        createPaymentAttachmentStatusHistory(employeeDto, paymentUpdate, paymentDetailId, "Creating New Apply Deposit with ID: ");
         command.setPaymentResponse(paymentUpdate);
 
@@ -123,5 +131,4 @@ public class CreatePaymentDetailApplyDepositCommandHandler implements ICommandHa
 //
 //        this.paymentAttachmentStatusHistoryService.create(attachmentStatusHistoryDto);
 //    }
-
 }

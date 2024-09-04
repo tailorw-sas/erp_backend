@@ -22,7 +22,7 @@ public class ManageInvoiceDto {
     private Long invoiceId;
     private Long invoiceNo;
     private String invoiceNumber;
-    private LocalDate invoiceDate;
+    private LocalDateTime invoiceDate;
     private LocalDate dueDate;
     private Boolean isManual;
     private Double invoiceAmount;
@@ -40,5 +40,9 @@ public class ManageInvoiceDto {
     private ManageInvoiceTypeDto manageInvoiceType;
     private ManageInvoiceStatusDto manageInvoiceStatus;
     private LocalDateTime createdAt;
+
+    private Boolean isCloned;
+    private ManageInvoiceDto parent;
+    private Double credits;
 
 }

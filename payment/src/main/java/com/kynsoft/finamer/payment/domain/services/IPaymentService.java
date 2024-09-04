@@ -17,6 +17,19 @@ public interface IPaymentService {
 
     PaymentDto findById(UUID id);
 
+    /**
+     * Permite obtener los Payment con Detalles.
+     * Cuando existe pago aplicado, te proporciona los Booking y el invoice al cual
+     * esta asociado el booking.
+     * @param id
+     * @return 
+     */
+    PaymentDto findPaymentByIdAndDetails(UUID id);
+
+    boolean existPayment(long genId);
+
+    PaymentDto findByPaymentId(long paymentId);
+
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
 
     List<PaymentDto> createBulk(List<PaymentDto> dtoList);

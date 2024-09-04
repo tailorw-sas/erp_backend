@@ -1,5 +1,6 @@
 package com.kynsoft.report.infrastructure.entity;
 
+import com.kynsoft.report.domain.dto.DBConectionDto;
 import com.kynsoft.report.domain.dto.JasperReportTemplateDto;
 import com.kynsoft.report.domain.dto.JasperReportTemplateType;
 import com.kynsof.share.core.domain.BaseEntity;
@@ -46,6 +47,12 @@ public class JasperReportTemplate extends BaseEntity {
     private String rootIndex;
     private String language;
 
+    private String query;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "db_conection_id", nullable = true)
+    private DBConection dbConection;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -75,11 +82,13 @@ public class JasperReportTemplate extends BaseEntity {
         this.rootIndex = jasperReportTemplateDto.getRootIndex();
         this.language = jasperReportTemplateDto.getLanguage();
         this.status = jasperReportTemplateDto.getStatus();
+        this.dbConection = jasperReportTemplateDto.getDbConection() != null ? new DBConection(jasperReportTemplateDto.getDbConection()) : null;
+        this.query = jasperReportTemplateDto.getQuery();
     }
 
     public JasperReportTemplateDto toAggregate() {
         String templateContentUrlS = file != null ? file : null;
-
+        DBConectionDto conectionDto = dbConection != null ? dbConection.toAggregate() : null;
         return new JasperReportTemplateDto(
                 id,
                 code,
@@ -101,7 +110,9 @@ public class JasperReportTemplate extends BaseEntity {
                 visible,
                 cancel,
                 rootIndex,
-                language
+                language,
+                conectionDto,
+                query
         );
     }
 

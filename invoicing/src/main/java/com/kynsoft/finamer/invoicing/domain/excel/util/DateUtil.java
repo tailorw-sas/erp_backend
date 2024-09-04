@@ -8,7 +8,7 @@ import java.time.format.DateTimeParseException;
 
 public class DateUtil {
 
-    private static final String [] validDateFormat = new String[]{"yyyyMMdd","yyyy/MM/dd"};
+    private static final String [] validDateFormat = new String[]{"yyyyMMdd","MM/dd/yyyy"};
 
     public static LocalDateTime parseDateToDateTime(String date){
         LocalDate localDate;
@@ -50,7 +50,7 @@ public class DateUtil {
                 LocalDate.parse(date, DateTimeFormatter.ofPattern(validDateFormat[1]));
                 return true;
             }
-        }catch (DateTimeParseException exception){
+        }catch (Exception exception){
             return false;
         }
         return false;

@@ -7,11 +7,23 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.Query;
 
 public interface ManagePaymentTransactionTypeReadDataJPARepository extends JpaRepository<ManagePaymentTransactionType, UUID>,
         JpaSpecificationExecutor<ManagePaymentTransactionType> {
 
     Page<ManagePaymentTransactionType> findAll(Specification specification, Pageable pageable);
 
+    Optional<ManagePaymentTransactionType> findByCode(String code);
+
+    @Query("SELECT b FROM ManagePaymentTransactionType b WHERE b.paymentInvoice = true")
+    Optional<ManagePaymentTransactionType> findByPaymentInvoice();
+
+    @Query("SELECT b FROM ManagePaymentTransactionType b WHERE b.deposit = true")
+    Optional<ManagePaymentTransactionType> findByDeposit();
+
+    @Query("SELECT b FROM ManagePaymentTransactionType b WHERE b.applyDeposit = true")
+    Optional<ManagePaymentTransactionType> findByApplyDeposit();
 }

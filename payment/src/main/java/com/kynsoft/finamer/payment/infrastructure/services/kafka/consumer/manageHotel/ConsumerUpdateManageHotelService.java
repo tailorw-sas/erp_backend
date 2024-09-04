@@ -28,7 +28,14 @@ public class ConsumerUpdateManageHotelService {
     @KafkaListener(topics = "finamer-update-manage-hotel", groupId = "payment-entity-replica")
     public void listen(UpdateManageHotelKafka objKafka) {
         try {
-            UpdateManageHotelCommand command = new UpdateManageHotelCommand(objKafka.getId(), objKafka.getName(), objKafka.getStatus());
+            UpdateManageHotelCommand command = new UpdateManageHotelCommand(
+                    objKafka.getId(), 
+                    objKafka.getName(), 
+                    objKafka.getStatus(), 
+                    objKafka.getApplyByTradingCompany(),
+                    objKafka.getManageTradingCompany(),
+                    objKafka.getAutoApplyCredit()
+            );
             mediator.send(command);
 
             if (paymentCloseOperationService.findByHotelId(objKafka.getId()) == 0) {

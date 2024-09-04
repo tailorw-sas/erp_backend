@@ -5,6 +5,7 @@ import com.kynsof.share.core.domain.kafka.entity.*;
 import com.kynsoft.finamer.settings.domain.dto.*;
 import com.kynsoft.finamer.settings.domain.services.*;
 import com.kynsoft.finamer.settings.infrastructure.services.kafka.producer.manageAgency.ProducerReplicateManageAgencyService;
+import com.kynsoft.finamer.settings.infrastructure.services.kafka.producer.manageAgencyType.ProducerReplicateManageAgencyTypeService;
 import com.kynsoft.finamer.settings.infrastructure.services.kafka.producer.manageAttachmentType.ProducerReplicateManageAttachmentTypeService;
 import com.kynsoft.finamer.settings.infrastructure.services.kafka.producer.manageBankAccount.ProducerReplicateManageBankAccount;
 import com.kynsoft.finamer.settings.infrastructure.services.kafka.producer.manageClient.ProducerReplicateManageClientService;
@@ -37,6 +38,7 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
     private final IManageAttachmentTypeService attachmentTypeService;
 
     private final IManageAgencyService manageAgencyService;
+    private final IManageAgencyTypeService manageAgencyTypeService;
     private final IManageBankAccountService manageBankAccountService;
     private final IManageEmployeeService manageEmployeeService;
     private final IManageHotelService manageHotelService;
@@ -50,6 +52,7 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
     private final ProducerReplicateManageClientService replicateManageClientService;
     private final ProducerReplicateManagePaymentAttachmentStatusService replicateManagePaymentAttachmentStatusService;
     private final ProducerReplicateManageAttachmentTypeService replicateManageAttachmentTypeService;
+    private final ProducerReplicateManageAgencyTypeService replicateManageAgencyTypeService;
 
     public CreateReplicateCommandHandler(IManageInvoiceTypeService invoiceTypeService, 
                                          IManagerPaymentStatusService paymentStatusService, 
@@ -73,7 +76,9 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                                          ProducerReplicateManagePaymentAttachmentStatusService replicateManagePaymentAttachmentStatusService,
                                          IManageInvoiceTransactionTypeService invoiceTransactionTypeService,
                                          ProducerReplicateManageAttachmentTypeService replicateManageAttachmentTypeService,
-                                         IManageAttachmentTypeService attachmentTypeService
+                                         IManageAttachmentTypeService attachmentTypeService,
+                                         IManageAgencyTypeService manageAgencyTypeService,
+                                         ProducerReplicateManageAgencyTypeService replicateManageAgencyTypeService
                                          ) {
         this.invoiceTypeService = invoiceTypeService;
         this.paymentStatusService = paymentStatusService;
@@ -101,6 +106,8 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
         this.invoiceTransactionTypeService = invoiceTransactionTypeService;
         this.attachmentTypeService = attachmentTypeService;
         this.replicateManageAttachmentTypeService = replicateManageAttachmentTypeService;
+        this.manageAgencyTypeService = manageAgencyTypeService;
+        this.replicateManageAgencyTypeService = replicateManageAgencyTypeService;
     }
 
     @Override
@@ -115,6 +122,11 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                 case MANAGE_ATTACHMENT_TYPE -> {
                     for (ManageAttachmentTypeDto attachmentTypeDto : this.attachmentTypeService.findAllToReplicate()) {
                         this.replicateManageAttachmentTypeService.create(new ReplicateManageAttachmentTypeKafka(attachmentTypeDto.getId(), attachmentTypeDto.getCode(), attachmentTypeDto.getName(), attachmentTypeDto.getStatus().toString(), attachmentTypeDto.getDefaults()));
+                    }
+                }
+                case MANAGE_AGENCY_TYPE -> {
+                    for (ManageAgencyTypeDto agencyTypeDto : this.manageAgencyTypeService.findAllToReplicate()) {
+                        this.replicateManageAgencyTypeService.create(new ReplicateManageAgencyTypeKafka(agencyTypeDto.getId(), agencyTypeDto.getCode(), agencyTypeDto.getName(), agencyTypeDto.getStatus().toString()));
                     }
                 }
                 case MANAGE_AGENCY -> {//
@@ -133,7 +145,7 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                 }
                 case MANAGE_BANK_ACCOUNT -> {//
                     for (ManageBankAccountDto bankAccountDto : this.manageBankAccountService.findAllToReplicate()) {
-                        this.replicateManageBankAccount.create(new ReplicateManageBankAccountKafka(bankAccountDto.getId(), bankAccountDto.getAccountNumber(), bankAccountDto.getStatus().name(), bankAccountDto.getManageBank().getName()));
+                        this.replicateManageBankAccount.create(new ReplicateManageBankAccountKafka(bankAccountDto.getId(), bankAccountDto.getAccountNumber(), bankAccountDto.getStatus().name(), bankAccountDto.getManageBank().getName(),bankAccountDto.getManageHotel().getId()));
                     }
                 }
                 case MANAGE_EMPLOYEE -> {//
@@ -143,7 +155,7 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                 }
                 case MANAGE_ATTACHMENT_STATUS -> {//
                     for (ManagePaymentAttachmentStatusDto paymentAttachmentStatusDto : this.managePaymentAttachmentStatusService.findAllToReplicate()) {
-                        this.replicateManagePaymentAttachmentStatusService.create(new ReplicateManagePaymentAttachmentStatusKafka(paymentAttachmentStatusDto.getId(), paymentAttachmentStatusDto.getCode(), paymentAttachmentStatusDto.getName(), paymentAttachmentStatusDto.getStatus().name()));
+                        this.replicateManagePaymentAttachmentStatusService.create(new ReplicateManagePaymentAttachmentStatusKafka(paymentAttachmentStatusDto.getId(), paymentAttachmentStatusDto.getCode(), paymentAttachmentStatusDto.getName(), paymentAttachmentStatusDto.getStatus().name(), paymentAttachmentStatusDto.getDefaults()));
                     }
                 }
                 case MANEGE_CLIENT -> {//
@@ -153,7 +165,7 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                 }
                 case MANAGE_INVOICE_STATUS -> {
                     for (ManageInvoiceStatusDto invoiceStatusDto : this.invoiceStatusService.findAllToReplicate()) {
-                        this.replicateManageInvoiceStatusService.create(new ReplicateManageInvoiceStatusKafka(invoiceStatusDto.getId(), invoiceStatusDto.getCode(), invoiceStatusDto.getName()));
+                        this.replicateManageInvoiceStatusService.create(new ReplicateManageInvoiceStatusKafka(invoiceStatusDto.getId(), invoiceStatusDto.getCode(), invoiceStatusDto.getName(), invoiceStatusDto.getShowClone()));
                     }
                 }
                 case MANAGE_INVOICE_TRANSACTION_TYPE -> {
@@ -163,12 +175,12 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                 }
                 case MANAGE_PAYMENT_STATUS -> {
                     for (ManagerPaymentStatusDto paymentStatusDto : this.paymentStatusService.findAllToReplicate()) {
-                        this.replicateManagePaymentStatusService.create(new ReplicateManagePaymentStatusKafka(paymentStatusDto.getId(), paymentStatusDto.getCode(), paymentStatusDto.getName(), paymentStatusDto.getStatus().name()));
+                        this.replicateManagePaymentStatusService.create(new ReplicateManagePaymentStatusKafka(paymentStatusDto.getId(), paymentStatusDto.getCode(), paymentStatusDto.getName(), paymentStatusDto.getStatus().name(), paymentStatusDto.getApplied()));
                     }
                 }
                 case MANAGE_PAYMENT_SOURCE -> {
                     for (ManagePaymentSourceDto paymentSourceDto : this.paymentSourceService.findAllToReplicate()) {
-                        this.replicateManagePaymentSourceService.create(new ReplicateManagePaymentSourceKafka(paymentSourceDto.getId(), paymentSourceDto.getCode(), paymentSourceDto.getName(), paymentSourceDto.getStatus().name()));
+                        this.replicateManagePaymentSourceService.create(new ReplicateManagePaymentSourceKafka(paymentSourceDto.getId(), paymentSourceDto.getCode(), paymentSourceDto.getName(), paymentSourceDto.getStatus().name(), paymentSourceDto.getExpense()));
                     }
                 }
                 case MANAGE_PAYMENT_TRANSACTION_TYPE -> {
@@ -183,10 +195,13 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                                 paymentTransactionTypeDto.getCash(), 
                                 paymentTransactionTypeDto.getRemarkRequired(), 
                                 paymentTransactionTypeDto.getMinNumberOfCharacter(),
-                                paymentTransactionTypeDto.getDefaultRemark()
+                                paymentTransactionTypeDto.getDefaultRemark(),
+                                paymentTransactionTypeDto.getDefaults(),
+                                paymentTransactionTypeDto.getPaymentInvoice()
                         ));
                     }
                 }
+
                 case MANAGE_HOTEL -> {//
                     for (ManageHotelDto hotelDto : this.manageHotelService.findAllToReplicate()) {
                         this.replicateManageHotelService.create(new ReplicateManageHotelKafka(
@@ -195,8 +210,11 @@ public class CreateReplicateCommandHandler implements ICommandHandler<CreateRepl
                                 hotelDto.getName(), 
                                 hotelDto.getIsApplyByVCC(), 
                                 hotelDto.getManageTradingCompanies() != null ? hotelDto.getManageTradingCompanies().getId() : null, 
-                                hotelDto.getStatus().name(), 
-                                hotelDto.getIsVirtual()
+                                hotelDto.getStatus().name(),
+                                hotelDto.getRequiresFlatRate(),
+                                hotelDto.getIsVirtual(),
+                                hotelDto.getApplyByTradingCompany(),
+                                hotelDto.getAutoApplyCredit()
                         ));
                     }
                 }

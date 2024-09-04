@@ -24,7 +24,7 @@ public class ManageInvoiceResponse implements IResponse {
     private Long invoiceId;
     private Long invoiceNo;
     private String invoiceNumber;
-    private LocalDate invoiceDate;
+    private LocalDateTime invoiceDate;
     private Boolean isManual;
     private Double invoiceAmount;
     private Double dueAmount;
@@ -35,16 +35,21 @@ public class ManageInvoiceResponse implements IResponse {
     private boolean autoRec;
     private boolean hasAttachments;
     private Boolean reSend;
+    private Boolean isCloned;
     private LocalDate reSendDate;
     private LocalDate dueDate;
     private ManageInvoiceTypeResponse manageInvoiceType;
     private ManageInvoiceStatusResponse manageInvoiceStatus;
     private LocalDateTime createdAt;
+    private Boolean isInCloseOperation = true;
+
+    private ManageInvoiceDto parent;
+    private Double credits;
 
     public ManageInvoiceResponse(ManageInvoiceDto dto) {
         this.id = dto.getId();
         this.invoiceId = dto.getInvoiceId();
-        this.invoiceNumber = dto.getInvoiceNumber();
+        this.invoiceNumber = this.deleteHotelInfo(dto.getInvoiceNumber());
         this.invoiceDate = dto.getInvoiceDate();
         this.isManual = dto.getIsManual();
         this.invoiceAmount = dto.getInvoiceAmount();
@@ -61,5 +66,14 @@ public class ManageInvoiceResponse implements IResponse {
         this.manageInvoiceStatus = dto.getManageInvoiceStatus() != null ? new ManageInvoiceStatusResponse(dto.getManageInvoiceStatus()) : null;
         this.createdAt = dto.getCreatedAt();
         this.dueDate = dto.getDueDate();
+        this.isCloned = dto.getIsCloned();
+        this.parent = dto.getParent();
+        this.invoiceNo = dto.getInvoiceNo();
+        this.credits = dto.getCredits();
     }
+
+    private String deleteHotelInfo(String input) {
+        return input.replaceAll("-(.*?)-", "-");
+    }
+
 }

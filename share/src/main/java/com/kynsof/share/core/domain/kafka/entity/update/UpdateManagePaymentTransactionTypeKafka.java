@@ -22,4 +22,6 @@ public class UpdateManagePaymentTransactionTypeKafka implements Serializable {
     private Boolean remarkRequired;
     private Integer minNumberOfCharacter;
     private String defaultRemark;
+    private Boolean defaults;
+    private Boolean paymentInvoice;
 }

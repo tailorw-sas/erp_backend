@@ -94,6 +94,9 @@ public class ManageBooking {
     @Column(nullable = true, updatable = true)
     private LocalDateTime deletedAt;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private ManageBooking parent;
+
     public ManageBooking(ManageBookingDto dto) {
         this.id = dto.getId();
         this.hotelCreationDate = dto.getHotelCreationDate();
@@ -121,6 +124,7 @@ public class ManageBooking {
         this.roomType = dto.getRoomType() != null ? new ManageRoomType(dto.getRoomType()) : null;
         this.roomCategory = dto.getRoomCategory() != null ? new ManageRoomCategory(dto.getRoomCategory()) : null;
         this.roomRates = dto.getRoomRates() != null ? dto.getRoomRates().stream().map(r -> {
+            r.setBooking(null);
             ManageRoomRate roomRate = new ManageRoomRate(r);
             roomRate.setRoomRateId(this.roomRates != null ? this.roomRates.size() + 1L : 1L);
             roomRate.setBooking(this);
@@ -128,6 +132,8 @@ public class ManageBooking {
         }).collect(Collectors.toList()) : null;
 
         this.nights = dto.getCheckIn() != null && dto.getCheckOut() !=null ? dto.getCheckIn().until(dto.getCheckOut(), ChronoUnit.DAYS) : 0L;
+        this.dueAmount = dto.getDueAmount() != null ? dto.getDueAmount() : 0.0;
+        this.parent = dto.getParent() != null ? new ManageBooking(dto.getParent()) : null;
     }
 
     public ManageBookingDto toAggregate() {
@@ -141,7 +147,8 @@ public class ManageBooking {
                 roomCategory != null ? roomCategory.toAggregate() : null,
                 roomRates != null ? roomRates.stream().map(b -> {
                     return b.toAggregateSample();
-                }).collect(Collectors.toList()) : null, nights);
+                }).collect(Collectors.toList()) : null, nights,
+                parent != null ? parent.toAggregateSample() : null);
     }
 
     public ManageBookingDto toAggregateSample() {
@@ -155,6 +162,13 @@ public class ManageBooking {
                 roomCategory != null ? roomCategory.toAggregate() : null,
                 roomRates != null ? roomRates.stream().map(b -> {
                     return b.toAggregateSample();
-                }).collect(Collectors.toList()) : null, nights);
+                }).collect(Collectors.toList()) : null, nights, null);
+    }
+
+    @PostLoad
+    public void initDefaultValue() {
+        if (dueAmount == null) {
+            dueAmount = 0.0;
+        }
     }
 }
