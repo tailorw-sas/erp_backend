@@ -27,6 +27,7 @@ import java.util.Optional;
 public class InvoiceAttachmentContentProvider extends AbstractReportContentProvider {
     private static final Logger logger = LoggerFactory.getLogger(InvoiceAttachmentContentProvider.class);
 
+
     private final String INVOICE_SERVICE_URL;
 
     public InvoiceAttachmentContentProvider(RestTemplate restTemplate, IReportGenerator reportGenerator, String invoiceServiceUrl) {
