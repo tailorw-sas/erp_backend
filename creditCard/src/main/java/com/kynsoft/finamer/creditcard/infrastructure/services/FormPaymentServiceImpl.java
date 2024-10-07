@@ -4,6 +4,7 @@ import com.kynsoft.finamer.creditcard.application.query.objectResponse.CardNetSe
 import com.kynsoft.finamer.creditcard.domain.dto.ManagerMerchantConfigDto;
 import com.kynsoft.finamer.creditcard.domain.dto.TransactionDto;
 import com.kynsoft.finamer.creditcard.domain.dto.TransactionPaymentLogsDto;
+import com.kynsoft.finamer.creditcard.domain.dtoEnum.Method;
 import com.kynsoft.finamer.creditcard.domain.services.IFormPaymentService;
 import com.kynsoft.finamer.creditcard.infrastructure.identity.TransactionPaymentLogs;
 import com.kynsoft.finamer.creditcard.infrastructure.repository.command.ManageTransactionsRedirectLogsWriteDataJPARepository;
