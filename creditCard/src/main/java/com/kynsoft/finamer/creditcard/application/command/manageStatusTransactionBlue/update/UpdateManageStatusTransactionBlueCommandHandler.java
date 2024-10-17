@@ -3,10 +3,7 @@ package com.kynsoft.finamer.creditcard.application.command.manageStatusTransacti
 import com.kynsof.share.core.domain.bus.command.ICommandHandler;
 import com.kynsoft.finamer.creditcard.domain.dto.*;
 import com.kynsoft.finamer.creditcard.domain.services.ITransactionService;
-import com.kynsoft.finamer.creditcard.infrastructure.services.CardNetJobServiceImpl;
-import com.kynsoft.finamer.creditcard.infrastructure.services.ManageCreditCardTypeServiceImpl;
-import com.kynsoft.finamer.creditcard.infrastructure.services.ManageTransactionStatusServiceImpl;
-import com.kynsoft.finamer.creditcard.infrastructure.services.TransactionPaymentLogsService;
+import com.kynsoft.finamer.creditcard.infrastructure.services.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,7 +13,8 @@ public class UpdateManageStatusTransactionBlueCommandHandler implements ICommand
     private final ManageCreditCardTypeServiceImpl creditCardTypeService;
     private final ManageTransactionStatusServiceImpl transactionStatusService;
     private final TransactionPaymentLogsService transactionPaymentLogsService;
-    public UpdateManageStatusTransactionBlueCommandHandler(ITransactionService transactionService, ManageCreditCardTypeServiceImpl creditCardTypeService,
+
+       public UpdateManageStatusTransactionBlueCommandHandler(ITransactionService transactionService, ManageCreditCardTypeServiceImpl creditCardTypeService,
                                                            ManageTransactionStatusServiceImpl transactionStatusService,
                                                            TransactionPaymentLogsService transactionPaymentLogsService){
         this.transactionService = transactionService;
@@ -44,6 +42,10 @@ public class UpdateManageStatusTransactionBlueCommandHandler implements ICommand
         transactionPaymentLogsDto.setMerchantResponse(command.getRequest().getMerchantResponse());
         transactionPaymentLogsDto.setIsProcessed(true);
         this.transactionPaymentLogsService.update(transactionPaymentLogsDto);
+
+        if(transactionService.confirmCreateTransaction(transactionDto.getTransactionUuid())){
+            transactionService.confirmTransactionMail(transactionDto.getTransactionUuid());
+        }
 
     }
 }
