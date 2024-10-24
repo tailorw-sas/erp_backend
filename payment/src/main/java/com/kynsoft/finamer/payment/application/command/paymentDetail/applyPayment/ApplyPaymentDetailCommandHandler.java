@@ -64,6 +64,7 @@ public class ApplyPaymentDetailCommandHandler implements ICommandHandler<ApplyPa
         paymentDetailDto.setManageBooking(bookingDto);
         paymentDetailDto.setApplayPayment(Boolean.TRUE);
         paymentDetailDto.setTransactionDate(OffsetDateTime.now(ZoneId.of("UTC")));
+        paymentDetailDto.setPaymentDetailId(this.paymentDetailService.queryForNextPaymentDetailId());
         this.manageBookingService.update(bookingDto);
         this.paymentDetailService.update(paymentDetailDto);
 

@@ -31,4 +31,7 @@ public interface ManagePaymentDetailReadDataJPARepository extends JpaRepository<
     @Query("SELECT COUNT(pd) FROM PaymentDetail pd where pd.payment.id = :paymentId AND pd.applayPayment = true")
     Long countByApplyPaymentAndPaymentId(@Param("id") UUID paymentId);
 
+    @Query("SELECT COALESCE(MAX(pd.paymentDetailId), 0) FROM PaymentDetail pd")
+    Optional<Long> queryForNextPaymentDetailId();
+
 }

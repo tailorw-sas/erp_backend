@@ -34,8 +34,9 @@ public class PaymentDetail implements Serializable {
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Column(columnDefinition="serial", name = "payment_detail_gen_id")
-    @Generated(event = EventType.INSERT)
+    //@Column(columnDefinition="serial", name = "payment_detail_gen_id")
+    @Column(name = "payment_detail_gen_id", nullable = true)
+    //@Generated(event = EventType.INSERT)
     private Long paymentDetailId;
 
     private Long parentId;
@@ -128,6 +129,7 @@ public class PaymentDetail implements Serializable {
         this.reverseFromParentId = dto.getReverseFromParentId();
         this.reverseTransaction = dto.isReverseTransaction();
         this.createByCredit = dto.isCreateByCredit();
+        this.paymentDetailId = dto.getPaymentDetailId();
     }
 
     public PaymentDetailDto toAggregate() {

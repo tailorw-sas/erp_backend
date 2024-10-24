@@ -115,6 +115,7 @@ public class CreatePaymentDetailFromFileCommandHandler implements ICommandHandle
             newDetailDto.setApplyDepositValue(command.getAmount());
             //Validar el Close Operation
             newDetailDto.setTransactionDate(OffsetDateTime.now(ZoneId.of("UTC")));
+            newDetailDto.setPaymentDetailId(this.paymentDetailService.queryForNextPaymentDetailId());
         }
 
         this.paymentDetailService.create(newDetailDto);

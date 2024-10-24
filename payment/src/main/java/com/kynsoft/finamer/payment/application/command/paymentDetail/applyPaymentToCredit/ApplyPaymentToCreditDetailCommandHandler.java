@@ -44,6 +44,7 @@ public class ApplyPaymentToCreditDetailCommandHandler implements ICommandHandler
         bookingDto.setAmountBalance(0.0);
         paymentDetailDto.setManageBooking(bookingDto);
         paymentDetailDto.setApplayPayment(Boolean.TRUE);
+        paymentDetailDto.setPaymentDetailId(this.paymentDetailService.queryForNextPaymentDetailId());
         this.manageBookingService.update(bookingDto);
         this.paymentDetailService.update(paymentDetailDto);
 

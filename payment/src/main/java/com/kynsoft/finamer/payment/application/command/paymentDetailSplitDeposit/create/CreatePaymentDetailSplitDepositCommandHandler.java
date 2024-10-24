@@ -5,7 +5,6 @@ import com.kynsof.share.core.domain.bus.command.ICommandHandler;
 import com.kynsof.share.core.domain.rules.ValidateObjectNotNullRule;
 import com.kynsof.share.utils.ConsumerUpdate;
 import com.kynsof.share.utils.UpdateIfNotNull;
-import com.kynsoft.finamer.payment.domain.dto.ManageEmployeeDto;
 import com.kynsoft.finamer.payment.domain.dto.ManagePaymentTransactionTypeDto;
 import com.kynsoft.finamer.payment.domain.dto.PaymentDetailDto;
 import com.kynsoft.finamer.payment.domain.rules.paymentDetail.*;
@@ -19,28 +18,17 @@ public class CreatePaymentDetailSplitDepositCommandHandler implements ICommandHa
     private final IManagePaymentTransactionTypeService paymentTransactionTypeService;
     private final IPaymentService paymentService;
 
-    private final IManageEmployeeService manageEmployeeService;
-
-    private final IPaymentStatusHistoryService paymentAttachmentStatusHistoryService;
-
     public CreatePaymentDetailSplitDepositCommandHandler(IPaymentDetailService paymentDetailService,
             IManagePaymentTransactionTypeService paymentTransactionTypeService,
-            IPaymentService paymentService,
-            IManageEmployeeService manageEmployeeService,
-            IPaymentStatusHistoryService paymentAttachmentStatusHistoryService) {
+            IPaymentService paymentService) {
         this.paymentDetailService = paymentDetailService;
         this.paymentTransactionTypeService = paymentTransactionTypeService;
         this.paymentService = paymentService;
-
-        this.manageEmployeeService = manageEmployeeService;
-        this.paymentAttachmentStatusHistoryService = paymentAttachmentStatusHistoryService;
     }
 
     @Override
     public void handle(CreatePaymentDetailSplitDepositCommand command) {
         RulesChecker.checkRule(new ValidateObjectNotNullRule<>(command.getEmployee(), "id", "Employee ID cannot be null."));
-
-        ManageEmployeeDto employeeDto = this.manageEmployeeService.findById(command.getEmployee());
 
         //El valor ingresado no debe ser cero.
         RulesChecker.checkRule(new CheckPaymentDetailAmountSplitGreaterThanZeroRule(command.getAmount()));
@@ -78,25 +66,13 @@ public class CreatePaymentDetailSplitDepositCommandHandler implements ICommandHa
                 null,
                 false
         );
+
         split.setApplyDepositValue(command.getAmount());
-        Long paymentDetailId = paymentDetailService.create(split);
+        split.setPaymentDetailId(this.paymentDetailService.queryForNextPaymentDetailId());
+        paymentDetailService.create(split);
         paymentDetailService.update(paymentDetailDto);
 
-//        createPaymentAttachmentStatusHistory(employeeDto, paymentDetailDto.getPayment(), paymentDetailId, "Creating Split ANTI with ID: ");
         command.setPaymentResponse(this.paymentService.findById(paymentDetailDto.getPayment().getId()));
     }
-
-    //Este es para agregar el History del Payment. Aqui el estado es el del nomenclador Manage Payment Status
-//    private void createPaymentAttachmentStatusHistory(ManageEmployeeDto employeeDto, PaymentDto payment, Long paymentDetail, String msg) {
-//
-//        PaymentStatusHistoryDto attachmentStatusHistoryDto = new PaymentStatusHistoryDto();
-//        attachmentStatusHistoryDto.setId(UUID.randomUUID());
-//        attachmentStatusHistoryDto.setDescription(msg + paymentDetail);
-//        attachmentStatusHistoryDto.setEmployee(employeeDto);
-//        attachmentStatusHistoryDto.setPayment(payment);
-//        attachmentStatusHistoryDto.setStatus(payment.getPaymentStatus().getCode() + "-" + payment.getPaymentStatus().getName());
-//
-//        this.paymentAttachmentStatusHistoryService.create(attachmentStatusHistoryDto);
-//    }
 
 }

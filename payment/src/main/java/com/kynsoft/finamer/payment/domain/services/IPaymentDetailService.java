@@ -30,4 +30,6 @@ public interface IPaymentDetailService {
     PaymentDetailDto findByPaymentDetailId(Long paymentDetailId);
 
     Long countByApplyPaymentAndPaymentId(UUID id);
+
+    Long queryForNextPaymentDetailId();
 }

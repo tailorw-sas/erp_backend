@@ -140,4 +140,9 @@ public class PaymentDetailServiceImpl implements IPaymentDetailService {
         return this.repositoryQuery.countByApplyPaymentAndPaymentId(id);
     }
 
+    @Override
+    public Long queryForNextPaymentDetailId() {
+        return repositoryQuery.queryForNextPaymentDetailId().orElse(0L) + 1;
+    }
+
 }
