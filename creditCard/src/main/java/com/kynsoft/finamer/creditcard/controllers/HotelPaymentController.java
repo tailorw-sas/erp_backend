@@ -10,6 +10,9 @@ import com.kynsoft.finamer.creditcard.application.command.hotelPayment.addTransa
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.create.CreateHotelPaymentCommand;
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.create.CreateHotelPaymentMessage;
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.create.CreateHotelPaymentRequest;
+import com.kynsoft.finamer.creditcard.application.command.hotelPayment.send.SendHotelPaymentCommand;
+import com.kynsoft.finamer.creditcard.application.command.hotelPayment.send.SendHotelPaymentMessage;
+import com.kynsoft.finamer.creditcard.application.command.hotelPayment.send.SendHotelPaymentRequest;
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.unbindTransactions.UnbindHotelPaymentTransactionsCommand;
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.unbindTransactions.UnbindHotelPaymentTransactionsMessage;
 import com.kynsoft.finamer.creditcard.application.command.hotelPayment.unbindTransactions.UnbindHotelPaymentTransactionsRequest;
@@ -82,6 +85,14 @@ public class HotelPaymentController {
     public ResponseEntity<?> getById(@PathVariable UUID id) {
         FindHotelPaymentByIdQuery query = new FindHotelPaymentByIdQuery(id);
         HotelPaymentResponse response = mediator.send(query);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/send")
+    public ResponseEntity<?> send(@RequestBody SendHotelPaymentRequest request) {
+        SendHotelPaymentCommand command = new SendHotelPaymentCommand(request.getId());
+        SendHotelPaymentMessage response = this.mediator.send(command);
 
         return ResponseEntity.ok(response);
     }

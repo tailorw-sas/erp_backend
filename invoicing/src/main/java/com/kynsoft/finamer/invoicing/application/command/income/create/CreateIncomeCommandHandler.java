@@ -72,7 +72,7 @@ public class CreateIncomeCommandHandler implements ICommandHandler<CreateIncomeC
         RulesChecker.checkRule(new CheckIfIncomeDateIsBeforeCurrentDateRule(command.getInvoiceDate().toLocalDate()));
 //        RulesChecker.checkRule(new ManageInvoiceInvoiceDateInCloseOperationRule(this.closeOperationService, command.getInvoiceDate().toLocalDate(), command.getHotel()));
 
-        ManageAgencyDto agencyDto = this.agencyService.findById(command.getAgency());
+        ManageAgencyDto agencyDto = command.getAgency() != null ? this.agencyService.findById(command.getAgency()) : null;
         ManageHotelDto hotelDto = this.hotelService.findById(command.getHotel());
 
         ManageInvoiceTypeDto invoiceTypeDto = this.invoiceTypeService.findByEInvoiceType(EInvoiceType.INCOME);
