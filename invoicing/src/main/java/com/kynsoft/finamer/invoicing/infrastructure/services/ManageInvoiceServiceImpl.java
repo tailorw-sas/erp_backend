@@ -99,6 +99,7 @@ public class ManageInvoiceServiceImpl implements IManageInvoiceService {
         InvoiceUtils.establishDueDate(dto);
         InvoiceUtils.calculateInvoiceAging(dto);
         Invoice entity = new Invoice(dto);
+        entity.setInvoiceId(this.maxInvoiceId());
         entity.setInvoiceDate(LocalDateTime.of(dto.getInvoiceDate().toLocalDate(), LocalTime.now()));
         if (dto.getHotel().isVirtual() && dto.getInvoiceType().equals(EInvoiceType.INVOICE)) {
             String invoiceNumber = dto.getInvoiceNumber() + "-" + dto.getHotelInvoiceNumber();
@@ -535,6 +536,12 @@ public class ManageInvoiceServiceImpl implements IManageInvoiceService {
             dto.setManageInvoiceStatus(status);
         }
         return dto;
+    }
+
+    @Override
+    public Long maxInvoiceId() {
+        Long invoiceId = this.repositoryQuery.maxInvoiceId();
+        return invoiceId + 1;
     }
 
 }

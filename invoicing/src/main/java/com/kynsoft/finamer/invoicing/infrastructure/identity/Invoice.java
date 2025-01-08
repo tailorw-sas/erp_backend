@@ -39,8 +39,9 @@ public class Invoice {
     @Column(name = "id")
     private UUID id;
 
-    @Column(columnDefinition = "serial", name = "invoice_gen_id")
-    @Generated(event = EventType.INSERT)
+//    @Column(columnDefinition = "serial", name = "invoice_gen_id")
+//    @Generated(event = EventType.INSERT)
+    @Column(columnDefinition = "BIGINT", name = "invoice_gen_id")
     private Long invoiceId;
 
     private Long invoiceNo;
@@ -127,6 +128,7 @@ public class Invoice {
     public Invoice(ManageInvoiceDto dto) {
         this.id = dto.getId();
         this.invoiceNumber = dto.getInvoiceNumber();
+        this.invoiceId = dto.getInvoiceId();
         this.invoiceDate = dto.getInvoiceDate();
         this.isManual = dto.getIsManual();
         this.invoiceAmount = dto.getInvoiceAmount() != null ? ScaleAmount.scaleAmount(dto.getInvoiceAmount()) : null;
