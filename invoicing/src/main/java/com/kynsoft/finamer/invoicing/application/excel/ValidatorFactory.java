@@ -28,7 +28,7 @@ public abstract class ValidatorFactory<T> {
 
     abstract public boolean validate(T toValidate);
 
-    abstract public boolean validateInsist(List<BookingImportCache> list);
+    abstract public boolean validateInsist(List<BookingImportCache> list);//Valida a nivel de Booking
 
     protected void sendErrorEvent(BookingRow bookingRow){
         if (!errorFieldList.isEmpty()) {
