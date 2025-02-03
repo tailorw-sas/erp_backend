@@ -244,6 +244,7 @@ public class BookingImportHelperServiceImpl implements IBookingImportHelperServi
         }
         manageInvoiceDto.setInvoiceNumber(createInvoiceNumber(hotel, bookingRowList.get(0)));
         manageInvoiceDto.setHotelInvoiceNumber(bookingRowList.get(0).getHotelInvoiceNumber() != null ? Long.valueOf(bookingRowList.get(0).getHotelInvoiceNumber()) : null);
+        //TODO Eliminar esto y devolver el manageInvoiceDto antes de crear para garantizar transaccionalidad
         manageInvoiceDto = invoiceService.create(manageInvoiceDto);
         this.createInvoiceHistory(manageInvoiceDto, employee);
 
