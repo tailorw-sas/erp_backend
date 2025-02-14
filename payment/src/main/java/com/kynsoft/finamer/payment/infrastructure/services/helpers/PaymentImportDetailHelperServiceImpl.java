@@ -149,21 +149,27 @@ public class PaymentImportDetailHelperServiceImpl extends AbstractPaymentImportH
                 }
                 if (Objects.nonNull(paymentImportCache.getAnti()) && !paymentImportCache.getAnti().isEmpty()) {
                     boolean applyPayment = true;
+                    double amount = Double.parseDouble(paymentImportCache.getPaymentAmount());
                     if (bookingDto == null) {
                         applyPayment = false;
+                    } else {
+                        amount = Math.min(bookingDto.getBookingAmountBalance(), Double.parseDouble(paymentImportCache.getPaymentAmount()));
                     }
                     //PaymentDetailDto paymentDetailDto = paymentDetailService.findByGenId(Integer.parseInt(paymentImportCache.getAnti()));
                     PaymentDetailSimpleDto paymentDetailDto = paymentDetailService.findSimpleDetailByGenId(Integer.parseInt(paymentImportCache.getAnti()));
-                    this.sendToCreateApplyDeposit(paymentDetailDto.getId(),
-                            Double.parseDouble(paymentImportCache.getPaymentAmount()),
-                            UUID.fromString(request.getEmployeeId()),
-                            managePaymentTransactionTypeDto.getId(),
-                            null,
-                            getRemarks(paymentImportCache, managePaymentTransactionTypeDto),
-                            bookingDto != null ? bookingDto.getBookingId() : null,
-                            applyPayment
-                    );
-
+                    if (paymentDetailDto.getApplyDepositValue() >= amount) {
+                        this.sendToCreateApplyDeposit(
+                                paymentDetailDto.getId(),
+                                amount,
+                                //Double.parseDouble(paymentImportCache.getPaymentAmount()),
+                                UUID.fromString(request.getEmployeeId()),
+                                managePaymentTransactionTypeDto.getId(),
+                                null,
+                                getRemarks(paymentImportCache, managePaymentTransactionTypeDto),
+                                bookingDto != null ? bookingDto.getBookingId() : null,
+                                applyPayment
+                        );
+                    }
                 } else {
                     if (bookingDto == null) {
                         try {
