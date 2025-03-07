@@ -6,11 +6,11 @@ import com.kynsof.share.core.domain.rules.BusinessRule;
 
 public class ImportBookingSizeRule extends BusinessRule {
 
-    private final Integer originalBookingsSize;
-    private final Integer currentBookingsSize;
+    private final int originalBookingsSize;
+    private final int currentBookingsSize;
 
-    public ImportBookingSizeRule(Integer originalBookingsSize,
-                                 Integer currentBookingsSize){
+    public ImportBookingSizeRule(int originalBookingsSize,
+                                 int currentBookingsSize){
         super(
                 DomainErrorMessage.INNSIST_IMPORT_BOOKING_SIZE_RULE,
                 new ErrorField("BookingsSize", DomainErrorMessage.INNSIST_IMPORT_BOOKING_SIZE_RULE.getReasonPhrase())
