@@ -1,6 +1,6 @@
 package com.kynsof.share.core.application.ftp;
 
-import com.kynsof.share.core.application.FileRequest;
+import com.kynsof.share.core.domain.request.FileRequest;
 import com.kynsof.share.core.domain.service.IFtpService;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;

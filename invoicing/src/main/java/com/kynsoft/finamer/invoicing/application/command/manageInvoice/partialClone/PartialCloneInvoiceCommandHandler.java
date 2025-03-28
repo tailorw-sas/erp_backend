@@ -37,7 +37,6 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
     private final ProducerReplicateManageInvoiceService producerReplicateManageInvoiceService;
     private final IManageRoomRateService rateService;
     private final IManageInvoiceStatusService manageInvoiceStatusService;
-    private final IManageBookingService bookingService;
     private final IInvoiceStatusHistoryService invoiceStatusHistoryService;
     private final IAttachmentStatusHistoryService attachmentStatusHistoryService;
     private final IManageInvoiceTransactionTypeService transactionTypeService;
@@ -51,7 +50,6 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
             IManageAttachmentTypeService attachmentTypeService,
             ProducerReplicateManageInvoiceService producerReplicateManageInvoiceService,
             IManageRoomRateService rateService, IManageInvoiceStatusService manageInvoiceStatusService,
-            IManageBookingService bookingService,
             IInvoiceStatusHistoryService invoiceStatusHistoryService,
             IAttachmentStatusHistoryService attachmentStatusHistoryService,
             IManageInvoiceTransactionTypeService transactionTypeService,
@@ -66,7 +64,6 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
         this.producerReplicateManageInvoiceService = producerReplicateManageInvoiceService;
         this.rateService = rateService;
         this.manageInvoiceStatusService = manageInvoiceStatusService;
-        this.bookingService = bookingService;
         this.invoiceStatusHistoryService = invoiceStatusHistoryService;
         this.attachmentStatusHistoryService = attachmentStatusHistoryService;
         this.transactionTypeService = transactionTypeService;

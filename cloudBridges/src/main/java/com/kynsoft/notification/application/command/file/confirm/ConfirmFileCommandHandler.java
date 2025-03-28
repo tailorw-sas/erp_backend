@@ -1,7 +1,7 @@
 package com.kynsoft.notification.application.command.file.confirm;
 
 import com.kynsof.share.core.domain.bus.command.ICommandHandler;
-import com.kynsof.share.utils.FileDto;
+import com.kynsof.share.core.domain.response.FileDto;
 import com.kynsoft.notification.domain.service.IAFileService;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +23,7 @@ public class ConfirmFileCommandHandler implements ICommandHandler<ConfirmFileCom
         List<FileDto> list = fileService.findByIds(command.getIds());
         if (!list.isEmpty()) {
             list.stream().map(aFileDto -> {
-                aFileDto.setConfirm(true);
+                aFileDto.setConfirmed(true);
                 fileService.update(aFileDto);
                 return null;
             });

@@ -41,7 +41,8 @@ public class ConsumerResetPasswordEventService {
         }
     }
 
-    private static @NotNull SendMailJetEMailCommand getSendMailJetEMailCommand(UserResetPasswordKafka otpKafka, List<MailJetRecipient> mailJetRecipients, int template) {
+    private static @NotNull SendMailJetEMailCommand getSendMailJetEMailCommand(UserResetPasswordKafka otpKafka,
+       List<MailJetRecipient> mailJetRecipients, int template) {
         List<MailJetVar> vars = Arrays.asList(
                 new MailJetVar("name", otpKafka.getFullName()),
                 new MailJetVar("temp_password", otpKafka.getPassword())

@@ -1,6 +1,5 @@
 package com.kynsoft.notification.controller;
 
-import com.kynsof.share.core.application.FileRequest;
 import com.kynsoft.notification.domain.service.IFTPService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,16 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.ByteArrayOutputStream;
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ftp")

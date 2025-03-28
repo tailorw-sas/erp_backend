@@ -23,24 +23,10 @@ public class ConsumerGenerateReportEventService {
     @KafkaListener(topics = "finamer-generate-report", groupId = "generate-report")
     public void listen(String event) {
         try {
-            System.err.println("#######################################################");
-            System.err.println("#######################################################");
-            System.err.println("SE EJECUTA GENERAR REPORT");
-            System.err.println("#######################################################");
-            System.err.println("#######################################################");
-
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(event);
-
             GenerateReportKafka eventRead = objectMapper.treeToValue(rootNode.get("data"), GenerateReportKafka.class);
             EventType eventType = objectMapper.treeToValue(rootNode.get("type"), EventType.class);
-
-            System.err.println("#######################################################");
-            System.err.println("#######################################################");
-            System.err.println("SE EJENERA REPORT");
-            System.err.println("#######################################################");
-            System.err.println("#######################################################");
-
         } catch (JsonProcessingException ex) {
             Logger.getLogger(ConsumerGenerateReportEventService.class.getName()).log(Level.SEVERE, null, ex);
         }

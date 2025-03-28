@@ -1,5 +1,6 @@
 package com.kynsof.share.core.domain.service;
-import com.kynsof.share.core.application.FileRequest;
+
+import com.kynsof.share.core.domain.request.FileRequest;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

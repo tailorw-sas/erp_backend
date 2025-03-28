@@ -4,7 +4,7 @@ import com.kynsof.share.core.domain.bus.query.IResponse;
 
 import java.time.LocalDateTime;
 
-public class FileResponse implements IResponse {
+/*public class FileResponse implements IResponse {
 
     private final LocalDateTime time;
 
@@ -23,4 +23,4 @@ public class FileResponse implements IResponse {
     public byte[] getDocument() {
         return document;
     }
-}
+}*/
