@@ -1,10 +1,13 @@
 package com.kynsoft.finamer.invoicing.domain.dto.InvoiceXml;
 
+import com.kynsoft.finamer.invoicing.domain.dto.BaseXml;
 import jakarta.xml.bind.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Locale;
 
 @Getter
 @Setter
@@ -12,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @XmlRootElement(name = "TotalSummary")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class TotalSummary {
+public class TotalSummary extends BaseXml {
     @XmlAttribute(name = "GrossAmount")
     private double grossAmount;
 
@@ -27,4 +30,11 @@ public class TotalSummary {
 
     @XmlAttribute(name = "Total")
     private double total;
+
+    @Override
+    public String toString() {
+        return String.format(Locale.US,
+                "<TotalSummary GrossAmount=\"%.2f\" Discounts=\"%.2f\" SubTotal=\"%.2f\" Tax=\"%.2f\" Total=\"%.2f\"/>",
+                grossAmount, discounts, subTotal, tax, total);
+    }
 }

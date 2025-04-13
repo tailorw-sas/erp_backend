@@ -686,11 +686,11 @@ public class PaymentImportDetailHelperServiceImpl extends AbstractPaymentImportH
             }
 
             if(Objects.nonNull(excelRow.getBookId())){
-                bookingsIdSet.add(Long.parseLong(excelRow.getBookId()));
+                bookingsIdSet.add(Long.parseLong(excelRow.getBookId().trim()));
             }
 
             if(Objects.nonNull(excelRow.getPaymentId())){
-                paymentIdSet.add(Long.parseLong(excelRow.getPaymentId()));
+                paymentIdSet.add(Long.parseLong(excelRow.getPaymentId().trim()));
             }
 
             if(Objects.nonNull(excelRow.getCoupon())){
@@ -739,11 +739,11 @@ public class PaymentImportDetailHelperServiceImpl extends AbstractPaymentImportH
             }
 
             if(Objects.nonNull(paymentImportCache.getBookId())){
-                bookingsIdSet.add(Long.parseLong(paymentImportCache.getBookId()));
+                bookingsIdSet.add(Long.parseLong(paymentImportCache.getBookId().trim()));
             }
 
             if(Objects.nonNull(paymentImportCache.getPaymentId())){
-                paymentIdSet.add(Long.parseLong(paymentImportCache.getPaymentId()));
+                paymentIdSet.add(Long.parseLong(paymentImportCache.getPaymentId().trim()));
             }
 
             if(Objects.nonNull(paymentImportCache.getCoupon())){
@@ -751,7 +751,7 @@ public class PaymentImportDetailHelperServiceImpl extends AbstractPaymentImportH
             }
 
             if(paymentImportCache.getAnti() != null){
-                paymentDetailsAntiSet.add(Long.parseLong(paymentImportCache.getAnti()));
+                paymentDetailsAntiSet.add(Long.parseLong(paymentImportCache.getAnti().trim()));
             }
         }
 

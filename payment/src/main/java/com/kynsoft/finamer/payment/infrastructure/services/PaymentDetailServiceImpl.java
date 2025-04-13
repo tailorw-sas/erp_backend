@@ -105,10 +105,17 @@ public class PaymentDetailServiceImpl implements IPaymentDetailService {
     }
 
     @Override
+    public List<PaymentDetailDto> findByPaymentIdCustom(UUID paymentId) {
+        List<PaymentDetail> result = repositoryQuery.findAllByPaymentId(paymentId);
+        return result.stream().map(PaymentDetail::toAggregate).toList();
+    }
+
+    @Override
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria) {
         filterCriteria(filterCriteria);
 
         GenericSpecificationsBuilder<PaymentDetail> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
+        //Page<PaymentDetail> data = this.repositoryQuery.findAllCustom(specifications, pageable);
         Page<PaymentDetail> data = this.repositoryQuery.findAll(specifications, pageable);
 
         return getPaginatedResponse(data);

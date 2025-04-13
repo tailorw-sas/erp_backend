@@ -34,6 +34,6 @@ public class FindPaymentByIdQueryHandler implements IQueryHandler<FindPaymentByI
             return Collections.emptyList();
         }
 
-        return paymentDetailService.findByPaymentId(id);
+        return paymentDetailService.findByPaymentIdCustom(id);
     }
 }

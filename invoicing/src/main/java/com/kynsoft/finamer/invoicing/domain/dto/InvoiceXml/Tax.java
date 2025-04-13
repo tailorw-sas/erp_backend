@@ -1,5 +1,6 @@
 package com.kynsoft.finamer.invoicing.domain.dto.InvoiceXml;
 
+import com.kynsoft.finamer.invoicing.domain.dto.BaseXml;
 import jakarta.xml.bind.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @XmlRootElement(name = "Tax")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Tax {
+public class Tax extends BaseXml {
     @XmlAttribute(name = "Type")
     private String type = "EXENTO";
 
@@ -25,4 +26,11 @@ public class Tax {
 
     @XmlAttribute(name = "Description")
     private String description = StringUtils.EMPTY;
+
+    @Override
+    public String toString() {
+        return String.format("<Tax Type=\"%s\" Rate=\"%.2f\" Amount=\"%.2f\" Description=\"%s\"/>",
+                safe(type), rate, amount, safe(description));
+    }
+
 }

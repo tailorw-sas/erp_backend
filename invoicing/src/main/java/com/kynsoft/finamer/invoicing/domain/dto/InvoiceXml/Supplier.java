@@ -1,5 +1,6 @@
 package com.kynsoft.finamer.invoicing.domain.dto.InvoiceXml;
 
+import com.kynsoft.finamer.invoicing.domain.dto.BaseXml;
 import jakarta.xml.bind.annotation.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @XmlRootElement(name = "Supplier")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Supplier {
+public class Supplier extends BaseXml {
     @XmlAttribute(name = "SupplierID")
     private String code;
 
@@ -39,4 +40,10 @@ public class Supplier {
 
     @XmlAttribute(name = "Country")
     private String country;
+
+    @Override
+    public String toString(){
+        return String.format("<Supplier SupplierID=\"%s\" CustomerSupplierID=\"%s\" CIF=\"%s\" Company=\"%s\" Address=\"%s\" City=\"%s\" PC=\"%s\" Province=\"%s\" Country=\"%s\"/>",
+                safe(code), safe(customerSupplierId), safe(cif), safe(company), safe(address), safe(city), safe(zipCode), safe(cityState), safe(country));
+    }
 }
