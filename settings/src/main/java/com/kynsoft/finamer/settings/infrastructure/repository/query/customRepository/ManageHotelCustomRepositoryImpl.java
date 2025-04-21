@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,97 @@ public class ManageHotelCustomRepositoryImpl implements ManageHotelCustomReposit
         Join<ManageHotel, ManageRegion> manageRegionJoin = root.join("manageRegion", JoinType.LEFT);
         Join<ManageHotel, ManageTradingCompanies> manageTradingCompaniesJoin = root.join("manageTradingCompanies", JoinType.LEFT);
 
+        List<Selection<?>> selections = getHotelSelections(root,
+                manageCountryJoin,
+                managerLanguageJoin,
+                manageCityStateJoin,
+                manageCityStateCountryJoin,
+                manageCityStateCountryLanguageJoin,
+                manageCityStateTimeZoneJoin,
+                managerCurrencyJoin,
+                manageRegionJoin,
+                manageTradingCompaniesJoin);
+
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        if(specification != null){
+            Predicate predicate = specification.toPredicate(root, query, cb);
+            query.where(predicate);
+        }
+
+        query.orderBy(QueryUtils.toOrders(pageable.getSort(), root, cb));
+
+        TypedQuery<Tuple> typedQuery = entityManager.createQuery(query);
+        typedQuery.setFirstResult((int)pageable.getOffset());
+        typedQuery.setMaxResults(pageable.getPageSize());
+
+        List<Tuple> tuples = typedQuery.getResultList();
+
+        List<ManageHotel> results = tuples.stream()
+                .map(this::convertTupleToHotel)
+                .collect(Collectors.toList());
+
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<ManageHotel> countRoot = countQuery.from(ManageHotel.class);
+        countQuery.select(cb.count(countRoot));
+
+        if (specification != null) {
+            Predicate countPredicate = specification.toPredicate(countRoot, countQuery, cb);
+            countQuery.where(countPredicate);
+        }
+        long total = entityManager.createQuery(countQuery).getSingleResult();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public Optional<ManageHotel> findByIdCustom(UUID id) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+
+        Root<ManageHotel> root = query.from(ManageHotel.class);
+        Join<ManageHotel, ManageCountry> manageCountryJoin = root.join("manageCountry", JoinType.LEFT);
+        Join<ManageCountry, ManagerLanguage> managerLanguageJoin = manageCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<ManageHotel, ManageCityState> manageCityStateJoin = root.join("manageCityState", JoinType.LEFT);
+        Join<ManageCityState, ManageCountry> manageCityStateCountryJoin = manageCityStateJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManagerLanguage> manageCityStateCountryLanguageJoin = manageCityStateCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<ManageCityState, ManagerTimeZone> manageCityStateTimeZoneJoin = manageCityStateJoin.join("timeZone", JoinType.LEFT);
+        Join<ManageHotel, ManagerCurrency> managerCurrencyJoin = root.join("manageCurrency", JoinType.LEFT);
+        Join<ManageHotel, ManageRegion> manageRegionJoin = root.join("manageRegion", JoinType.LEFT);
+        Join<ManageHotel, ManageTradingCompanies> manageTradingCompaniesJoin = root.join("manageTradingCompanies", JoinType.LEFT);
+
+        List<Selection<?>> selections = getHotelSelections(root,
+                manageCountryJoin,
+                managerLanguageJoin,
+                manageCityStateJoin,
+                manageCityStateCountryJoin,
+                manageCityStateCountryLanguageJoin,
+                manageCityStateTimeZoneJoin,
+                managerCurrencyJoin,
+                manageRegionJoin,
+                manageTradingCompaniesJoin);
+
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        query.where(cb.equal(root.get("id"), id));
+
+        Tuple tuple = entityManager.createQuery(query).getSingleResult();
+
+        ManageHotel result = convertTupleToHotel(tuple);
+
+        return Optional.of(result);
+    }
+
+    private List<Selection<?>> getHotelSelections(Root<ManageHotel> root,
+                                                  Join<ManageHotel, ManageCountry> manageCountryJoin,
+                                                  Join<ManageCountry, ManagerLanguage> managerLanguageJoin,
+                                                  Join<ManageHotel, ManageCityState> manageCityStateJoin,
+                                                  Join<ManageCityState, ManageCountry> manageCityStateCountryJoin,
+                                                  Join<ManageCountry, ManagerLanguage> manageCityStateCountryLanguageJoin,
+                                                  Join<ManageCityState, ManagerTimeZone> manageCityStateTimeZoneJoin,
+                                                  Join<ManageHotel, ManagerCurrency> managerCurrencyJoin,
+                                                  Join<ManageHotel, ManageRegion> manageRegionJoin,
+                                                  Join<ManageHotel, ManageTradingCompanies> manageTradingCompaniesJoin){
         List<Selection<?>> selections = new ArrayList<>();
         selections.add(root.get("id"));
         selections.add(root.get("code"));
@@ -156,157 +248,131 @@ public class ManageHotelCustomRepositoryImpl implements ManageHotelCustomReposit
         selections.add(root.get("isApplyByVCC"));
         selections.add(root.get("autoApplyCredit"));
 
-        query.multiselect(selections.toArray(new Selection[0]));
+        return selections;
+    }
 
-        if(specification != null){
-            Predicate predicate = specification.toPredicate(root, query, cb);
-            query.where(predicate);
-        }
-
-        query.orderBy(QueryUtils.toOrders(pageable.getSort(), root, cb));
-
-        TypedQuery<Tuple> typedQuery = entityManager.createQuery(query);
-        typedQuery.setFirstResult((int)pageable.getOffset());
-        typedQuery.setMaxResults(pageable.getPageSize());
-
-        List<Tuple> tuples = typedQuery.getResultList();
-
-        List<ManageHotel> results = tuples.stream()
-                .map(tuple -> {
-                   return new ManageHotel(
-                           tuple.get(0, UUID.class),
-                           tuple.get(1, String.class),
-                           tuple.get(2, Status.class),
-                           tuple.get(3, String.class),
-                           tuple.get(4, String.class),
-                           tuple.get(5, LocalDateTime.class),
-                           tuple.get(6, LocalDateTime.class),
-                           tuple.get(7, String.class),
-                            new ManageCountry(
-                                    tuple.get(8, UUID.class),
-                                    tuple.get(9, String.class),
-                                    tuple.get(10, String.class),
-                                    tuple.get(11, String.class),
-                                    tuple.get(12, String.class),
-                                    tuple.get(13, String.class),
-                                    tuple.get(14, Boolean.class),
-                                    new ManagerLanguage(
-                                            tuple.get(15, UUID.class),
-                                            tuple.get(16, String.class),
-                                            tuple.get(17, Status.class),
-                                            tuple.get(18, String.class),
-                                            tuple.get(19, String.class),
-                                            tuple.get(20, Boolean.class),
-                                            tuple.get(21, Boolean.class),
-                                            tuple.get(22, LocalDateTime.class),
-                                            tuple.get(23, LocalDateTime.class)
-                                    ),
-                                    tuple.get(24, Status.class),
-                                    tuple.get(25, LocalDateTime.class),
-                                    tuple.get(26, LocalDateTime.class),
-                                    tuple.get(27, LocalDateTime.class),
-                                    null
-                            ),
-                           new ManageCityState(
-                                   tuple.get(28, UUID.class),
-                                   tuple.get(29, String.class),
-                                   tuple.get(30, String.class),
-                                   tuple.get(31, String.class),
-                                   new ManageCountry(
-                                           tuple.get(32, UUID.class),
-                                           tuple.get(33, String.class),
-                                           tuple.get(34, String.class),
-                                           tuple.get(35, String.class),
-                                           tuple.get(36, String.class),
-                                           tuple.get(37, String.class),
-                                           tuple.get(38, Boolean.class),
-                                           new ManagerLanguage(
-                                                   tuple.get(39, UUID.class),
-                                                   tuple.get(40, String.class),
-                                                   tuple.get(41, Status.class),
-                                                   tuple.get(42, String.class),
-                                                   tuple.get(43, String.class),
-                                                   tuple.get(44, Boolean.class),
-                                                   tuple.get(45, Boolean.class),
-                                                   tuple.get(46, LocalDateTime.class),
-                                                   tuple.get(47, LocalDateTime.class)
-                                           ),
-                                           tuple.get(48, Status.class),
-                                           tuple.get(49, LocalDateTime.class),
-                                           tuple.get(50, LocalDateTime.class),
-                                           tuple.get(51, LocalDateTime.class),
-                                           null
-                                   ),
-                                   new ManagerTimeZone(
-                                           tuple.get(52, UUID.class),
-                                           tuple.get(53, String.class),
-                                           tuple.get(54, String.class),
-                                           tuple.get(55, String.class),
-                                           tuple.get(56, Double.class),
-                                           tuple.get(57, Status.class),
-                                           tuple.get(58, LocalDateTime.class),
-                                           tuple.get(59, LocalDateTime.class)
-                                   ),
-                                   tuple.get(60, Status.class),
-                                   tuple.get(61, LocalDateTime.class),
-                                   tuple.get(62, LocalDateTime.class)
-                           ),
-                           tuple.get(63, String.class),
-                           tuple.get(64, String.class),
-                           new ManagerCurrency(
-                                   tuple.get(65, UUID.class),
-                                   tuple.get(66, String.class),
-                                   tuple.get(67, String.class),
-                                   tuple.get(68, String.class),
-                                   tuple.get(69, Status.class),
-                                   tuple.get(70, LocalDateTime.class),
-                                   tuple.get(71, LocalDateTime.class)
-                           ),
-                           new ManageRegion(
-                                   tuple.get(72, UUID.class),
-                                   tuple.get(73, String.class),
-                                   tuple.get(74, Status.class),
-                                   tuple.get(75, String.class),
-                                   tuple.get(76, String.class),
-                                   tuple.get(77, LocalDateTime.class),
-                                   tuple.get(78, LocalDateTime.class)
-                           ),
-                           new ManageTradingCompanies(
-                                   tuple.get(79, UUID.class),
-                                   tuple.get(80, String.class),
-                                   tuple.get(81, Status.class),
-                                   tuple.get(82, String.class),
-                                   tuple.get(83, String.class),
-                                   tuple.get(84, LocalDateTime.class),
-                                   tuple.get(85, LocalDateTime.class),
-                                   tuple.get(86, String.class),
-                                   tuple.get(87, String.class),
-                                   null,
-                                   null,
-                                   tuple.get(88, String.class),
-                                   tuple.get(89, String.class),
-                                   tuple.get(90, String.class),
-                                   tuple.get(91, Boolean.class)
-                           ),
-                           tuple.get(92, Boolean.class),
-                           tuple.get(93, String.class),
-                           tuple.get(94, Boolean.class),
-                           tuple.get(95, Boolean.class),
-                           tuple.get(96, Boolean.class),
-                           tuple.get(97, Boolean.class)
-                   );
-                }).collect(Collectors.toList());
-
-        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<ManageHotel> countRoot = countQuery.from(ManageHotel.class);
-        countQuery.select(cb.count(countRoot));
-
-        if (specification != null) {
-            Predicate countPredicate = specification.toPredicate(countRoot, countQuery, cb);
-            countQuery.where(countPredicate);
-        }
-        long total = entityManager.createQuery(countQuery).getSingleResult();
-
-        return new PageImpl<>(results, pageable, total);
+    private ManageHotel convertTupleToHotel(Tuple tuple){
+        return new ManageHotel(
+                tuple.get(0, UUID.class),
+                tuple.get(1, String.class),
+                tuple.get(2, Status.class),
+                tuple.get(3, String.class),
+                tuple.get(4, String.class),
+                tuple.get(5, LocalDateTime.class),
+                tuple.get(6, LocalDateTime.class),
+                tuple.get(7, String.class),
+                new ManageCountry(
+                        tuple.get(8, UUID.class),
+                        tuple.get(9, String.class),
+                        tuple.get(10, String.class),
+                        tuple.get(11, String.class),
+                        tuple.get(12, String.class),
+                        tuple.get(13, String.class),
+                        tuple.get(14, Boolean.class),
+                        new ManagerLanguage(
+                                tuple.get(15, UUID.class),
+                                tuple.get(16, String.class),
+                                tuple.get(17, Status.class),
+                                tuple.get(18, String.class),
+                                tuple.get(19, String.class),
+                                tuple.get(20, Boolean.class),
+                                tuple.get(21, Boolean.class),
+                                tuple.get(22, LocalDateTime.class),
+                                tuple.get(23, LocalDateTime.class)
+                        ),
+                        tuple.get(24, Status.class),
+                        tuple.get(25, LocalDateTime.class),
+                        tuple.get(26, LocalDateTime.class),
+                        tuple.get(27, LocalDateTime.class),
+                        null
+                ),
+                new ManageCityState(
+                        tuple.get(28, UUID.class),
+                        tuple.get(29, String.class),
+                        tuple.get(30, String.class),
+                        tuple.get(31, String.class),
+                        new ManageCountry(
+                                tuple.get(32, UUID.class),
+                                tuple.get(33, String.class),
+                                tuple.get(34, String.class),
+                                tuple.get(35, String.class),
+                                tuple.get(36, String.class),
+                                tuple.get(37, String.class),
+                                tuple.get(38, Boolean.class),
+                                new ManagerLanguage(
+                                        tuple.get(39, UUID.class),
+                                        tuple.get(40, String.class),
+                                        tuple.get(41, Status.class),
+                                        tuple.get(42, String.class),
+                                        tuple.get(43, String.class),
+                                        tuple.get(44, Boolean.class),
+                                        tuple.get(45, Boolean.class),
+                                        tuple.get(46, LocalDateTime.class),
+                                        tuple.get(47, LocalDateTime.class)
+                                ),
+                                tuple.get(48, Status.class),
+                                tuple.get(49, LocalDateTime.class),
+                                tuple.get(50, LocalDateTime.class),
+                                tuple.get(51, LocalDateTime.class),
+                                null
+                        ),
+                        new ManagerTimeZone(
+                                tuple.get(52, UUID.class),
+                                tuple.get(53, String.class),
+                                tuple.get(54, String.class),
+                                tuple.get(55, String.class),
+                                tuple.get(56, Double.class),
+                                tuple.get(57, Status.class),
+                                tuple.get(58, LocalDateTime.class),
+                                tuple.get(59, LocalDateTime.class)
+                        ),
+                        tuple.get(60, Status.class),
+                        tuple.get(61, LocalDateTime.class),
+                        tuple.get(62, LocalDateTime.class)
+                ),
+                tuple.get(63, String.class),
+                tuple.get(64, String.class),
+                new ManagerCurrency(
+                        tuple.get(65, UUID.class),
+                        tuple.get(66, String.class),
+                        tuple.get(67, String.class),
+                        tuple.get(68, String.class),
+                        tuple.get(69, Status.class),
+                        tuple.get(70, LocalDateTime.class),
+                        tuple.get(71, LocalDateTime.class)
+                ),
+                new ManageRegion(
+                        tuple.get(72, UUID.class),
+                        tuple.get(73, String.class),
+                        tuple.get(74, Status.class),
+                        tuple.get(75, String.class),
+                        tuple.get(76, String.class),
+                        tuple.get(77, LocalDateTime.class),
+                        tuple.get(78, LocalDateTime.class)
+                ),
+                new ManageTradingCompanies(
+                        tuple.get(79, UUID.class),
+                        tuple.get(80, String.class),
+                        tuple.get(81, Status.class),
+                        tuple.get(82, String.class),
+                        tuple.get(83, String.class),
+                        tuple.get(84, LocalDateTime.class),
+                        tuple.get(85, LocalDateTime.class),
+                        tuple.get(86, String.class),
+                        tuple.get(87, String.class),
+                        null,
+                        null,
+                        tuple.get(88, String.class),
+                        tuple.get(89, String.class),
+                        tuple.get(90, String.class),
+                        tuple.get(91, Boolean.class)
+                ),
+                tuple.get(92, Boolean.class),
+                tuple.get(93, String.class),
+                tuple.get(94, Boolean.class),
+                tuple.get(95, Boolean.class),
+                tuple.get(96, Boolean.class),
+                tuple.get(97, Boolean.class)
+        );
     }
 }

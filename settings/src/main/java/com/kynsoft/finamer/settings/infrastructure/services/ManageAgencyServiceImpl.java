@@ -85,15 +85,9 @@ public class ManageAgencyServiceImpl implements IManageAgencyService {
 
     @Override
 //    @Cacheable(cacheNames = "manageAgency", key = "#id", unless = "#result == null")
-//    public ManageAgencyDto findById(UUID id) {
-//        Optional<ManageAgency> optionalEntity = repositoryQuery.findById(id);
-//        return optionalEntity.map(ManageAgency::toAggregate)
-//                .orElseThrow(() -> new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.MANAGE_AGENCY_TYPE_NOT_FOUND, new ErrorField("id", "The source not found."))));
-//    }
-
     public ManageAgencyDto findById(UUID id) {
         long startTime = System.nanoTime();
-        Optional<ManageAgency> optionalEntity = repositoryQuery.getAgencyByIdWithAllRelations(id);
+        Optional<ManageAgency> optionalEntity = repositoryQuery.findByIdCustom(id);
         long endTime = System.nanoTime();
         Logger.getLogger(ManageAgencyServiceImpl.class.getName()).log(Level.WARNING, "Tiempo:" + (endTime - startTime)/1_000_000);
 
@@ -112,7 +106,7 @@ public class ManageAgencyServiceImpl implements IManageAgencyService {
     public PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria, UUID employeeId) {
         filterCriteria(filterCriteria, employeeId);
         GenericSpecificationsBuilder<ManageAgency> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
-        Page<ManageAgency> data = repositoryQuery.findAll(specifications, pageable);
+        Page<ManageAgency> data = repositoryQuery.findAllCustom(specifications, pageable);
         return getPaginatedResponse(data);
     }
 
