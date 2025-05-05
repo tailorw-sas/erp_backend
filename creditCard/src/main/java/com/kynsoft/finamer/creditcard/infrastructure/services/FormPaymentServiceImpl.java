@@ -53,7 +53,8 @@ public class FormPaymentServiceImpl implements IFormPaymentService {
         this.merchantLanguageCodeService = merchantLanguageCodeService;
     }
 
-    public MerchantRedirectResponse redirectToMerchant(TransactionDto transactionDto, ManagerMerchantConfigDto merchantConfigDto, ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto) {
+    public MerchantRedirectResponse redirectToMerchant(TransactionDto transactionDto, ManagerMerchantConfigDto merchantConfigDto,
+                                                       ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto) {
         if (transactionDto.getMethodType() == MethodType.LINK && !isValidLink(transactionDto)) {
             throw new BusinessException(DomainErrorMessage.VCC_EXPIRED_PAYMENT_LINK, DomainErrorMessage.VCC_EXPIRED_PAYMENT_LINK.getReasonPhrase());
         } else {
@@ -65,7 +66,8 @@ public class FormPaymentServiceImpl implements IFormPaymentService {
         }
     }
 
-    private MerchantRedirectResponse redirectToAzul(TransactionDto transactionDto, ManagerMerchantConfigDto merchantConfigDto, ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto) {
+    private MerchantRedirectResponse redirectToAzul(TransactionDto transactionDto, ManagerMerchantConfigDto merchantConfigDto,
+                                                    ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto) {
         // Extraer los parámetros del objeto PaymentRequest
         //TODO: aquí la idea es que la info del merchant se tome de merchant, b2bparter y merchantConfig
         String merchantId = merchantHotelEnrolleDto.getEnrrolle();

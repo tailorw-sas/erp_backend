@@ -78,27 +78,21 @@ public class CreateManualTransactionCommandHandler implements ICommandHandler<Cr
         RulesChecker.checkRule(new ManualTransactionCheckInBeforeRule(command.getCheckIn()));
         RulesChecker.checkRule(new ManualTransactionCheckInCloseOperationRule(this.closeOperationService, command.getCheckIn(), command.getHotel()));
         RulesChecker.checkRule(new ManualTransactionReferenceNumberMustBeNullRule(command.getReferenceNumber()));
+        if (command.getMethodType().compareTo(MethodType.LINK) == 0) {
+            RulesChecker.checkRule(new ValidateObjectNotNullRule<>(command.getGuestName(), "gestName", "Guest name cannot be null."));
+            RulesChecker.checkRule(new ValidateObjectNotNullRule<>(command.getEmail(), "email", "Email cannot be null."));
+        }
 
         ManageMerchantDto merchantDto = this.merchantService.findById(command.getMerchant());
         ManageHotelDto hotelDto = this.hotelService.findById(command.getHotel());
-
-//        RulesChecker.checkRule(new ManualTransactionReservationNumberUniqueRule(this.transactionService, command.getReservationNumber(), command.getHotel()));
 
         ManageAgencyDto agencyDto = this.agencyService.findById(command.getAgency());
         ManageLanguageDto languageDto = this.languageService.findById(command.getLanguage());
         ManagerMerchantCurrencyDto merchantCurrencyDto = this.merchantCurrencyService.findById(command.getMerchantCurrency());
 
-//        RulesChecker.checkRule(new ManualTransactionAgencyBookingFormatRule(agencyDto.getBookingCouponFormat()));
-//        RulesChecker.checkRule(new ManualTransactionReservationNumberRule(command.getReservationNumber(), agencyDto.getBookingCouponFormat()));
-
         ManageTransactionStatusDto transactionStatusDto = this.transactionStatusService.findByETransactionStatus(ETransactionStatus.SENT);
         ManageVCCTransactionTypeDto transactionCategory = this.transactionTypeService.findByManual();
         ManageVCCTransactionTypeDto transactionSubCategory = this.transactionTypeService.findByIsDefaultAndIsSubcategory();
-
-        if (command.getMethodType().compareTo(MethodType.LINK) == 0) {
-            RulesChecker.checkRule(new ValidateObjectNotNullRule<>(command.getGuestName(), "gestName", "Guest name cannot be null."));
-            RulesChecker.checkRule(new ValidateObjectNotNullRule<>(command.getEmail(), "email", "Email cannot be null."));
-        }
 
         ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto = this.merchantHotelEnrolleService.findByManageMerchantAndManageHotel(
                 merchantDto, hotelDto

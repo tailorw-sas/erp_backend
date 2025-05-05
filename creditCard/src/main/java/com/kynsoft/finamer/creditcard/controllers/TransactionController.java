@@ -90,11 +90,8 @@ public class TransactionController {
     @PostMapping("/search")
     public ResponseEntity<?> search(@AuthenticationPrincipal Jwt jwt, @RequestBody SearchRequest request) {
         Pageable pageable = PageableUtil.createPageable(request);
-
         String userId = jwt.getClaim("sub");
         UUID employeeId = UUID.fromString(userId);
-        //UUID employeeId = UUID.fromString("637ee5cb-1e36-4917-a0a9-5874bc8bea04");
-
         GetSearchTransactionQuery query = new GetSearchTransactionQuery(pageable, request.getFilter(), request.getQuery(), employeeId);
         TransactionResumeResponse response = mediator.send(query);
 

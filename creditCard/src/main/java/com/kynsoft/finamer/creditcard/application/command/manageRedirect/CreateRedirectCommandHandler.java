@@ -33,23 +33,23 @@ public class CreateRedirectCommandHandler implements ICommandHandler<CreateRedir
     @Override
     public void handle(CreateRedirectCommand command) {
         TransactionDto transactionDto = transactionService.findById(command.getRequestDto().getTransactionId());
-        // No procesar transacciones completadas
         if (!transactionDto.getStatus().isSentStatus() && !transactionDto.getStatus().isDeclinedStatus()) {
-            throw new BusinessException(DomainErrorMessage.MANAGE_TRANSACTION_ALREADY_PROCESSED, DomainErrorMessage.MANAGE_TRANSACTION_ALREADY_PROCESSED.getReasonPhrase());
+            var status = DomainErrorMessage.MANAGE_TRANSACTION_ALREADY_PROCESSED;
+            throw new BusinessException(status, status.getReasonPhrase());
         }
 
         ManagerMerchantConfigDto merchantConfigDto = this.merchantConfigService.findByMerchantID(command.getManageMerchantResponse().getId());
-        ManageMerchantHotelEnrolleDto merchantHotelEnrolleDto = this.merchantHotelEnrolleService.findByForeignIds(transactionDto.getMerchant().getId(), transactionDto.getHotel().getId(), transactionDto.getMerchantCurrency().getManagerCurrency().getId());
+        ManageMerchantHotelEnrolleDto merchantHotelEnrolleeDto = this.merchantHotelEnrolleService.findByForeignIds(transactionDto.getMerchant().getId(),
+                transactionDto.getHotel().getId(), transactionDto.getMerchantCurrency().getManagerCurrency().getId());
 
-        MerchantRedirectResponse merchantRedirectResponse = this.formPaymentService.redirectToMerchant(transactionDto, merchantConfigDto, merchantHotelEnrolleDto);
-
-        //Obtener la data que viene del FormServiceImpl y dividirla en merchantRequest([0]) y Map ([1])
-//        String[] dataForm = split(command.getResult());
+        MerchantRedirectResponse merchantRedirectResponse = this.formPaymentService.redirectToMerchant(transactionDto, merchantConfigDto,
+                merchantHotelEnrolleeDto);
         TransactionPaymentLogsDto dto = this.formPaymentService.findByTransactionId(transactionDto.getTransactionUuid());
 
         if (dto == null) {
             formPaymentService.create(new TransactionPaymentLogsDto(
-                    UUID.randomUUID(), transactionDto.getTransactionUuid(), merchantRedirectResponse.getLogData(), null, false, transactionDto.getId())
+                    UUID.randomUUID(), transactionDto.getTransactionUuid(), merchantRedirectResponse.getLogData(), null,
+                    false, transactionDto.getId())
             );
         } else {
             dto.setMerchantRequest(merchantRedirectResponse.getLogData());
