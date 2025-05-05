@@ -105,6 +105,25 @@ public class ManageInvoiceServiceImpl implements IManageInvoiceService {
             dto.setInvoiceNo(dto.getHotelInvoiceNumber());
             String invoicePrefix = InvoiceType.getInvoiceTypeCode(dto.getInvoiceType()) + "-" + dto.getHotelInvoiceNumber();
             entity.setInvoiceNumberPrefix(invoicePrefix);
+        } else {
+            EInvoiceType invoiceType = dto.getInvoiceType().name().equals(EInvoiceType.OLD_CREDIT.name()) ? EInvoiceType.CREDIT : dto.getInvoiceType();
+            long lastInvoiceNo;
+
+            if (dto.getHotel().getManageTradingCompanies() != null && dto.getHotel().getApplyByTradingCompany()) {
+                lastInvoiceNo = this.hotelInvoiceNumberSequenceService.incrementAndGetByTradingCompany(
+                        dto.getHotel().getManageTradingCompanies().getCode(), invoiceType);
+            } else {
+                lastInvoiceNo = this.hotelInvoiceNumberSequenceService.incrementAndGetByHotel(
+                        dto.getHotel().getCode(), invoiceType);
+            }
+
+            String invoiceNumber = InvoiceType.getInvoiceTypeCode(dto.getInvoiceType()) + "-" + dto.getHotel().getCode() + "-" + lastInvoiceNo;
+            String invoicePrefix = InvoiceType.getInvoiceTypeCode(dto.getInvoiceType()) + "-" + lastInvoiceNo;
+
+            dto.setInvoiceNo(lastInvoiceNo);
+            entity.setInvoiceNo(lastInvoiceNo);
+            entity.setInvoiceNumber(invoiceNumber);
+            entity.setInvoiceNumberPrefix(invoicePrefix);
         }
 
         Invoice invoice = this.repositoryCommand.saveAndFlush(entity);
