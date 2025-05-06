@@ -4,6 +4,7 @@ import com.kynsof.share.core.domain.RulesChecker;
 import com.kynsof.share.core.domain.bus.command.ICommandHandler;
 import com.kynsof.share.core.domain.exception.BusinessException;
 import com.kynsof.share.core.domain.exception.DomainErrorMessage;
+import com.kynsoft.finamer.invoicing.application.command.manageAttachment.create.CreateAttachmentCommand;
 import com.kynsoft.finamer.invoicing.domain.dto.*;
 import com.kynsoft.finamer.invoicing.domain.dtoEnum.EInvoiceStatus;
 import com.kynsoft.finamer.invoicing.domain.dtoEnum.EInvoiceType;
@@ -146,7 +147,7 @@ public class CreateNewCreditCommandHandler implements ICommandHandler<CreateNewC
 
         UUID attachmentDefault = null;
         for (ManageAttachmentDto attachmentDto : attachments) {
-            ManageAttachmentTypeDto attachmentType = attachmentDto.getType();
+            ManageAttachmentTypeDto attachmentType = attachmentDto.getAttachmentType();
             if (attachmentType.isAttachInvDefault()) {
                 attachmentDefault = attachmentDto.getId();
                 break;
@@ -187,10 +188,10 @@ public class CreateNewCreditCommandHandler implements ICommandHandler<CreateNewC
         }
     }
 
-    private List<ManageAttachmentDto> createAttachments(List<CreateNewCreditAttachmentRequest> attachmentCommands, String employeeId) {
+    private List<ManageAttachmentDto> createAttachments(List<CreateAttachmentCommand> attachmentCommands, String employeeId) {
         List<ManageAttachmentDto> attachments = new LinkedList<>();
         int cont = 0;
-        for (CreateNewCreditAttachmentRequest attachmentCommand : attachmentCommands) {
+        for (CreateAttachmentCommand attachmentCommand : attachmentCommands) {
             RulesChecker.checkRule(new ManageAttachmentFileNameNotNullRule(
                     attachmentCommand.getFile()
             ));
@@ -219,7 +220,7 @@ public class CreateNewCreditCommandHandler implements ICommandHandler<CreateNewC
 
             attachments.add(attachmentDto);
         }
-
+        //debe venir al menos un attachment de tipo attinvdefault
         if (cont == 0) {
             throw new BusinessException(
                     DomainErrorMessage.INVOICE_MUST_HAVE_ATTACHMENT_TYPE,
