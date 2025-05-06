@@ -197,6 +197,14 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
                     DomainErrorMessage.MANAGE_BOOKING_ADJUSTMENT.getReasonPhrase()
             );
         }
+        String invoiceNumber = InvoiceType.getInvoiceTypeCode(invoiceToClone.getInvoiceType());
+
+        if (invoiceToClone.getHotel().getManageTradingCompanies() != null
+                && invoiceToClone.getHotel().getManageTradingCompanies().getIsApplyInvoice()) {
+            invoiceNumber += "-" + invoiceToClone.getHotel().getManageTradingCompanies().getCode();
+        } else {
+            invoiceNumber += "-" + invoiceToClone.getHotel().getCode();
+        }
 
         EInvoiceStatus status = EInvoiceStatus.RECONCILED;
         ManageInvoiceStatusDto invoiceStatus = this.manageInvoiceStatusService.findByEInvoiceStatus(EInvoiceStatus.RECONCILED);
@@ -204,11 +212,11 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
                 UUID.randomUUID(),
                 0L,
                 0L,
-                null,
-                null,
+                invoiceNumber,
+                InvoiceType.getInvoiceTypeCode(invoiceToClone.getInvoiceType()) + "-" + 0L,
                 //invoiceToClone.getInvoiceDate(), 
                 this.invoiceDate(invoiceToClone.getHotel().getId(), command.getInvoiceDate()),
-                null,
+                invoiceToClone.getDueDate(),
                 true,
                 invoiceToClone.getInvoiceAmount(),
                 invoiceToClone.getInvoiceAmount(),
@@ -232,6 +240,11 @@ public class PartialCloneInvoiceCommandHandler implements ICommandHandler<Partia
 
         invoiceDto.setOriginalAmount(invoiceToClone.getInvoiceAmount());
         ManageInvoiceDto created = service.create(invoiceDto);
+
+        //calcular el amount de los bookings
+//        for (ManageBookingDto booking : created.getBookings()) {
+//            this.bookingService.calculateInvoiceAmount(booking);
+//        }
 
         //calcular el amount del invoice
         this.service.calculateInvoiceAmount(created);

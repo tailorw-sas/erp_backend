@@ -24,14 +24,22 @@ import java.util.logging.Logger;
 public class ProducerReplicateManageInvoiceService {
 
     private final KafkaTemplate<String, Object> producer;
+    private final IManageBookingService manageBookingService;
+    private final IManageInvoiceService invoiceService;
 
-    public ProducerReplicateManageInvoiceService(KafkaTemplate<String, Object> producer) {
+    public ProducerReplicateManageInvoiceService(KafkaTemplate<String, Object> producer,
+                                                 IManageBookingService manageBookingService, IManageInvoiceService invoiceService) {
         this.producer = producer;
+        this.manageBookingService = manageBookingService;
+        this.invoiceService = invoiceService;
     }
 
     @Async
     public void create(ManageInvoiceDto entity, UUID attachmentDefault, UUID employee) {
         try {
+            if (entity.getInvoiceType().compareTo(EInvoiceType.INCOME) == 0){
+                entity = this.invoiceService.findById(entity.getId());
+            }
             List<ManageBookingKafka> bookingKafkas = new ArrayList<>();
             if (entity.getBookings() != null) {
                 for (ManageBookingDto booking : entity.getBookings()) {

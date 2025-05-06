@@ -4,7 +4,6 @@ import com.kynsof.share.core.domain.request.FilterCriteria;
 import com.kynsof.share.core.domain.response.PaginatedResponse;
 import com.kynsoft.finamer.invoicing.domain.dto.ManageInvoiceDto;
 import com.kynsoft.finamer.invoicing.domain.dto.ManageInvoiceStatusDto;
-import com.kynsoft.finamer.invoicing.infrastructure.interfacesEntity.ManageInvoiceSearchProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -32,7 +31,7 @@ public interface IManageInvoiceService {
 
     PaginatedResponse searchToPayment(Pageable pageable, List<FilterCriteria> filterCriteria);
 
-    Page<ManageInvoiceSearchProjection> getInvoiceForSummary(Pageable pageable, List<FilterCriteria>filterCriteria, UUID employeeId);
+    Page<ManageInvoiceDto> getInvoiceForSummary(Pageable pageable, List<FilterCriteria>filterCriteria, UUID employeeId);
 
     List<ManageInvoiceDto> findByIds(List<UUID> ids);
 

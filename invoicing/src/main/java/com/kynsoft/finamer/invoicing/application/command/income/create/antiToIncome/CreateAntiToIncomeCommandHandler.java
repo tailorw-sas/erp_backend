@@ -87,12 +87,14 @@ public class CreateAntiToIncomeCommandHandler implements ICommandHandler<CreateA
             employeeFullName = command.getEmployee();
         }
 
+        String invoiceNumber = this.setInvoiceNumber(hotelDto, InvoiceType.getInvoiceTypeCode(EInvoiceType.INCOME));
+
         ManageInvoiceDto income = new ManageInvoiceDto(
                 command.getId(),
                 0L,
                 0L,
-                null,
-                null,
+                invoiceNumber,
+                InvoiceType.getInvoiceTypeCode(EInvoiceType.INCOME) + "-" + 0L,
                 command.getInvoiceDate(),
                 command.getDueDate(),
                 command.getManual(),
@@ -119,11 +121,22 @@ public class CreateAntiToIncomeCommandHandler implements ICommandHandler<CreateA
         command.setInvoiceNo(invoiceDto.getInvoiceNumber());
 
         this.updateInvoiceStatusHistory(invoiceDto, employeeFullName);
+        //this.updateInvoiceStatusHistory(invoiceDto, command.getEmployee());
         if (command.getAttachments() != null) {
             List<ManageAttachmentDto> attachmentDtoList = this.attachments(command.getAttachments(), invoiceDto);
             invoiceDto.setAttachments(attachmentDtoList);
             this.updateAttachmentStatusHistory(invoiceDto, attachmentDtoList, employeeFullName);
         }
+
+    }
+
+    private String setInvoiceNumber(ManageHotelDto hotel, String invoiceNumber) {
+        if (hotel.getManageTradingCompanies() != null && hotel.getManageTradingCompanies().getIsApplyInvoice()) {
+            invoiceNumber += "-" + hotel.getManageTradingCompanies().getCode();
+        } else {
+            invoiceNumber += "-" + hotel.getCode();
+        }
+        return invoiceNumber;
     }
 
     private void updateInvoiceStatusHistory(ManageInvoiceDto invoiceDto, String employee) {
