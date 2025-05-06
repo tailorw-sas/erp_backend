@@ -82,8 +82,8 @@ public class ConsumerUpdateBookingService {
                         booking.setDueAmount(BankerRounding.round(replicateBookingKafka.getAmountBalance()));
                         booking.setUpdatedAt(LocalDateTime.now());
 
-                        ManageInvoiceDto invoice = getInvoiceFromListByBookingId(invoicesToUpdate, booking.getId());
-                        setInvoiceDueAmount(invoice);
+                        //ManageInvoiceDto invoice = getInvoiceFromListByBookingId(invoicesToUpdate, booking.getId());
+                        ManageInvoiceDto invoice = booking.getInvoice();
 
                         PaymentDto payment = new PaymentDto(
                                 replicateBookingKafka.getPaymentKafka().getId(),
@@ -128,6 +128,8 @@ public class ConsumerUpdateBookingService {
                 }
             }
 
+            this.updateInvoiceBalances(invoicesToUpdate);
+
             this.saveChanges(invoicesToUpdate, paymentsToCreate, paymentDetailsToCreate, bookingParentsToUpdate, invoiceParentsToUpdate);
 
         } catch (Exception ex) {
@@ -141,13 +143,6 @@ public class ConsumerUpdateBookingService {
                 .distinct()
                 .collect(Collectors.toList());
         return this.invoiceService.findInvoicesByBookingIds(bookingIds);
-    }
-
-    private void setInvoiceDueAmount(ManageInvoiceDto invoiceDto){
-        Double currentDueAmount = invoiceDto.getBookings().stream()
-                .mapToDouble(ManageBookingDto::getDueAmount)
-                .sum();
-        invoiceDto.setDueAmount(BankerRounding.round(currentDueAmount));
     }
 
     private ManageInvoiceDto getInvoiceFromListByBookingId(List<ManageInvoiceDto> invoices, UUID bookingId){
@@ -188,5 +183,16 @@ public class ConsumerUpdateBookingService {
             List<ManageInvoiceDto> invoiceParentList = new ArrayList<>(invoceParents);
             this.invoiceService.updateAll(invoiceParentList);
         }
+    }
+
+    private void updateInvoiceBalances(List<ManageInvoiceDto> invoicesToUpdate){
+        invoicesToUpdate.forEach(this::setInvoiceDueAmount);
+    }
+
+    private void setInvoiceDueAmount(ManageInvoiceDto invoiceDto){
+        Double currentDueAmount = invoiceDto.getBookings().stream()
+                .mapToDouble(ManageBookingDto::getDueAmount)
+                .sum();
+        invoiceDto.setDueAmount(BankerRounding.round(currentDueAmount));
     }
 }
