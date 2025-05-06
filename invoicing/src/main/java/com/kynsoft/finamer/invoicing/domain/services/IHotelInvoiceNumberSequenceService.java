@@ -22,7 +22,4 @@ public interface IHotelInvoiceNumberSequenceService {
 
     PaginatedResponse search(Pageable pageable, List<FilterCriteria> filterCriteria);
 
-    long incrementAndGetByHotel(String hotelCode, EInvoiceType invoiceType);
-
-    long incrementAndGetByTradingCompany(String tradingCompanyCode, EInvoiceType invoiceType);
 }
