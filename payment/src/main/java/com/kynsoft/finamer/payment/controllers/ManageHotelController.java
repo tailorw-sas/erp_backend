@@ -4,13 +4,14 @@ import com.kynsof.share.core.domain.request.PageableUtil;
 import com.kynsof.share.core.domain.request.SearchRequest;
 import com.kynsof.share.core.domain.response.PaginatedResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
+import com.kynsoft.finamer.payment.application.query.manageHotel.getById.GetManageHotelByIdQuery;
 import com.kynsoft.finamer.payment.application.query.manageHotel.search.GetSearchManageHotelQuery;
+import com.kynsoft.finamer.payment.application.query.objectResponse.ManageHotelResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/manage-hotel")
@@ -21,6 +22,13 @@ public class ManageHotelController {
     public ManageHotelController(IMediator mediator) {
 
         this.mediator = mediator;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable("id") UUID id){
+        GetManageHotelByIdQuery query = new GetManageHotelByIdQuery(id);
+        ManageHotelResponse response = this.mediator.send(query);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/search")

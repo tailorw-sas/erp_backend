@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/payment/manage-invoice")
+@RequestMapping("/api/manage-invoice")
 public class ManageInvoiceController {
 
     private final IMediator mediator;

@@ -58,7 +58,7 @@ public class ManageBookingServiceImpl implements IManageBookingService {
 
     @Override
     public ManageBookingDto findById(UUID id) {
-        Optional<Booking> userSystem = this.repositoryQuery.findById(id);
+        Optional<Booking> userSystem = this.repositoryQuery.findByIdCustom(id);
         if (userSystem.isPresent()) {
             return userSystem.get().toAggregate();
         }

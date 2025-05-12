@@ -7,15 +7,13 @@ import com.kynsoft.finamer.payment.domain.dto.ManageBookingDto;
 import com.kynsoft.finamer.payment.domain.dto.ManageHotelDto;
 import com.kynsoft.finamer.payment.domain.dto.ManageInvoiceDto;
 import com.kynsoft.finamer.payment.domain.dtoEnum.EInvoiceType;
-import com.kynsoft.finamer.payment.domain.services.IManageAgencyService;
-import com.kynsoft.finamer.payment.domain.services.IManageBookingService;
-import com.kynsoft.finamer.payment.domain.services.IManageHotelService;
-import com.kynsoft.finamer.payment.domain.services.IManageInvoiceService;
+import com.kynsoft.finamer.payment.domain.services.*;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,16 +24,18 @@ public class ConsumerUpdateManageInvoiceService {
     private final IManageBookingService serviceBookingService;
     private final IManageHotelService manageHotelService;
     private final IManageAgencyService manageAgencyService;
+    private final IManageInvoiceStatusService manageInvoiceStatusService;
 
     public ConsumerUpdateManageInvoiceService(IManageInvoiceService service,
                                               IManageBookingService serviceBookingService,
                                               IManageHotelService manageHotelService,
-                                              IManageAgencyService manageAgencyService) {
-
+                                              IManageAgencyService manageAgencyService,
+                                              IManageInvoiceStatusService manageInvoiceStatusService) {
         this.service = service;
         this.serviceBookingService = serviceBookingService;
         this.manageHotelService = manageHotelService;
         this.manageAgencyService = manageAgencyService;
+        this.manageInvoiceStatusService = manageInvoiceStatusService;
     }
 
     @KafkaListener(topics = "finamer-update-manage-invoice", groupId = "payment-entity-replica")
@@ -73,14 +73,16 @@ public class ConsumerUpdateManageInvoiceService {
                     objKafka.getInvoiceNo(), 
                     deleteHotelInfo(objKafka.getInvoiceNumber()), 
                     EInvoiceType.valueOf(objKafka.getInvoiceType()),
-                    objKafka.getInvoiceAmount(), 
+                    objKafka.getInvoiceAmount(),
+                    objKafka.getInvoiceBalance(),
                     bookingDtos,
                     objKafka.getHasAttachment(),
                     objKafka.getInvoiceParent() != null ? this.service.findById(objKafka.getInvoiceParent()) : null,
                     objKafka.getInvoiceDate(),
                     manageHotelDto,
                     manageAgencyDto,
-                    objKafka.getAutoRec()
+                    objKafka.getAutoRec(),
+                    Objects.nonNull(objKafka.getInvoiceStatus()) ? this.manageInvoiceStatusService.findById(objKafka.getInvoiceStatus()) : null
             ));
         } catch (Exception ex) {
             Logger.getLogger(ConsumerUpdateManageInvoiceService.class.getName()).log(Level.SEVERE, null, ex);

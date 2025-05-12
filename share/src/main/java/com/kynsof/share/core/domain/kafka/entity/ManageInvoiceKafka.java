@@ -25,10 +25,12 @@ public class ManageInvoiceKafka {
     private String invoiceNumber;
     private String invoiceType;
     private Double invoiceAmount;
+    private Double invoiceBalance;
     private List<ManageBookingKafka> bookings;
     private List<AttachmentKafka> attachments;
     private Boolean hasAttachment;
     private LocalDateTime invoiceDate;
     private Boolean autoRec;
     private UUID employee;
+    private UUID invoiceStatus;
 }

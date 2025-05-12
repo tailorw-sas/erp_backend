@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class ConsumerCreateIncomeTransactionSuccess {
@@ -24,19 +25,22 @@ public class ConsumerCreateIncomeTransactionSuccess {
     private final IManageHotelService manageHotelService;
     private final IManageAgencyService manageAgencyService;
     private final ServiceLocator<IMediator> serviceLocator;
+    private final IManageInvoiceStatusService manageInvoiceStatusService;
 
     public ConsumerCreateIncomeTransactionSuccess(IManageInvoiceService manageInvoiceService,
                                                   IPaymentDetailService paymentDetailService,
                                                   IManageBookingService manageBookingService,
                                                   IManageHotelService manageHotelService,
                                                   IManageAgencyService manageAgencyService,
-                                                  ServiceLocator<IMediator> serviceLocator) {
+                                                  ServiceLocator<IMediator> serviceLocator,
+                                                  IManageInvoiceStatusService manageInvoiceStatusService) {
         this.manageInvoiceService = manageInvoiceService;
         this.paymentDetailService = paymentDetailService;
         this.manageBookingService = manageBookingService;
         this.manageHotelService = manageHotelService;
         this.manageAgencyService = manageAgencyService;
         this.serviceLocator = serviceLocator;
+        this.manageInvoiceStatusService = manageInvoiceStatusService;
     }
 
     @KafkaListener(topics = "finamer-create-income-transaction-success", groupId = "payment-entity-replica")
@@ -79,6 +83,9 @@ public class ConsumerCreateIncomeTransactionSuccess {
     private ManageInvoiceDto createManageInvoice(CreateIncomeTransactionSuccessKafka objKafka,List<ManageBookingDto> bookingDtos){
         ManageHotelDto manageHotelDto = manageHotelService.findById(objKafka.getHotel());
         ManageAgencyDto manageAgencyDto = manageAgencyService.findById(objKafka.getAgency());
+        ManageInvoiceDto invoiceParent = this.getParent(objKafka.getInvoiceParent());
+        ManageInvoiceStatusDto manageInvoiceStatusDto = this.getInvoiceStatus(objKafka.getStatus());
+
         return new ManageInvoiceDto(
                 objKafka.getId(),
                 objKafka.getInvoiceId(),
@@ -86,14 +93,30 @@ public class ConsumerCreateIncomeTransactionSuccess {
                 deleteHotelInfo(objKafka.getInvoiceNumber()),
                 EInvoiceType.valueOf(objKafka.getInvoiceType()),
                 objKafka.getInvoiceAmount(),
+                objKafka.getInvoiceBalance(),
                 bookingDtos,
                 false,
-                objKafka.getInvoiceParent() != null ? this.manageInvoiceService.findById(objKafka.getInvoiceParent()) : null,
+                invoiceParent,
                 objKafka.getInvoiceDate(),
                 manageHotelDto,
                 manageAgencyDto,
-                false
+                false,
+                manageInvoiceStatusDto
         );
+    }
+
+    private ManageInvoiceDto getParent(UUID id){
+        if(Objects.nonNull(id)){
+            return this.manageInvoiceService.findById(id);
+        }
+        return null;
+    }
+
+    private ManageInvoiceStatusDto getInvoiceStatus(UUID id){
+        if(Objects.nonNull(id)){
+            return this.manageInvoiceStatusService.findById(id);
+        }
+        return null;
     }
 
     private String deleteHotelInfo(String input) {

@@ -22,8 +22,10 @@ public class CreateIncomeTransactionSuccessKafka {
     private String invoiceNumber;
     private String invoiceType;
     private Double invoiceAmount;
+    private Double invoiceBalance;
     private List<ManageBookingKafka> bookings;
     private LocalDateTime invoiceDate;
     private UUID relatedPaymentDetailIds;
     private UUID employeeId;
+    private UUID status;
 }

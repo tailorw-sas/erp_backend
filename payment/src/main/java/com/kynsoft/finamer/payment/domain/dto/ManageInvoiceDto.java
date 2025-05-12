@@ -22,6 +22,7 @@ public class ManageInvoiceDto {
     private String invoiceNumber;
     private EInvoiceType invoiceType;
     private Double invoiceAmount;
+    private Double invoiceBalance;
     private List<ManageBookingDto> bookings;
     private Boolean hasAttachment;
     private ManageInvoiceDto parent;
@@ -29,4 +30,5 @@ public class ManageInvoiceDto {
     private ManageHotelDto hotel;
     private ManageAgencyDto agency;
     private Boolean autoRec;
+    private ManageInvoiceStatusDto status;
 }

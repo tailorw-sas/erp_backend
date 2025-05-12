@@ -8,6 +8,7 @@ import com.kynsof.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.finamer.payment.application.query.http.invoice.booking.genId.FindBookingByGenIdQuery;
 import com.kynsoft.finamer.payment.application.query.http.invoice.booking.uuid.FindBookingByUUIDQuery;
 import com.kynsoft.finamer.payment.application.query.manageBooking.getByGenId.GetBookingByGenIdQuery;
+import com.kynsoft.finamer.payment.application.query.manageBooking.getById.GetManageBookingByIdQuery;
 import com.kynsoft.finamer.payment.application.query.manageBooking.getByListIds.GetBookingByListIdsQuery;
 import com.kynsoft.finamer.payment.application.query.manageBooking.search.GetSearchManageBookingQuery;
 import com.kynsoft.finamer.payment.application.query.objectResponse.BookingProjectionResponse;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/payment/manage-booking")
+@RequestMapping("/api/manage-booking")
 public class ManageBookingController {
 
     private final IMediator mediator;
@@ -56,6 +57,14 @@ public class ManageBookingController {
 
         FindBookingByUUIDQuery query = new FindBookingByUUIDQuery(id, mediator);
         BookingHttp response = mediator.send(query);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable("id") UUID id){
+        GetManageBookingByIdQuery query = new GetManageBookingByIdQuery(id);
+        ManageBookingResponse response = mediator.send(query);
 
         return ResponseEntity.ok(response);
     }

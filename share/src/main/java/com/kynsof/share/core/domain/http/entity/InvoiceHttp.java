@@ -26,10 +26,12 @@ public class InvoiceHttp implements IResponse, Serializable {
     private String invoiceNumber;
     private String invoiceType;
     private Double invoiceAmount;
+    private Double invoiceBalance;
     private List<AttachmentHttp> attachments;
     private List<BookingHttp> bookings;
     private Boolean hasAttachment;
     private String invoiceDate;
     //private LocalDateTime invoiceDate;
     private Boolean autoRec;
+    private UUID invoiceStatus;
 }

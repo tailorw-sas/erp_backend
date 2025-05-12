@@ -88,12 +88,14 @@ public class ProducerReplicateManageInvoiceService {
                     entity.getInvoiceNumber(),
                     entity.getInvoiceType().toString(),
                     entity.getInvoiceAmount(),
+                    entity.getDueAmount(),
                     bookingKafkas,
                     attachmentKafkas,
                     entity.getAttachments() != null && !entity.getAttachments().isEmpty(),
                     entity.getInvoiceDate(),
                     entity.getAutoRec(),
-                    employee
+                    employee,
+                    entity.getManageInvoiceStatus() != null ? entity.getManageInvoiceStatus().getId() : null
             ));
         } catch (Exception ex) {
             Logger.getLogger(ProducerReplicateManageInvoiceService.class.getName()).log(Level.SEVERE, null, ex);

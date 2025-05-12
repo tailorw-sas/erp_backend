@@ -7,10 +7,8 @@ import com.kynsoft.finamer.payment.domain.dto.ManageBookingDto;
 import com.kynsoft.finamer.payment.domain.dto.ManageHotelDto;
 import com.kynsoft.finamer.payment.domain.dto.ManageInvoiceDto;
 import com.kynsoft.finamer.payment.domain.dtoEnum.EInvoiceType;
-import com.kynsoft.finamer.payment.domain.services.IManageAgencyService;
-import com.kynsoft.finamer.payment.domain.services.IManageBookingService;
-import com.kynsoft.finamer.payment.domain.services.IManageHotelService;
-import com.kynsoft.finamer.payment.domain.services.IManageInvoiceService;
+import com.kynsoft.finamer.payment.domain.services.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +21,18 @@ public class InvoiceImportAutomaticeHelperServiceImpl {
     private final IManageBookingService bookingService;
     private final IManageHotelService hotelService;
     private final IManageAgencyService manageAgencyService;
+    private final IManageInvoiceStatusService manageInvoiceStatusService;
 
     public InvoiceImportAutomaticeHelperServiceImpl(IManageInvoiceService invoiceService,
-            IManageBookingService bookingService,
-            IManageHotelService hotelService,
-            IManageAgencyService manageAgencyService) {
+                                                    IManageBookingService bookingService,
+                                                    IManageHotelService hotelService,
+                                                    IManageAgencyService manageAgencyService,
+                                                    IManageInvoiceStatusService manageInvoiceStatusService) {
         this.invoiceService = invoiceService;
         this.bookingService = bookingService;
         this.hotelService = hotelService;
         this.manageAgencyService = manageAgencyService;
+        this.manageInvoiceStatusService = manageInvoiceStatusService;
     }
 
     public void createInvoice(InvoiceHttp invoiceHttp) {
@@ -51,13 +52,15 @@ public class InvoiceImportAutomaticeHelperServiceImpl {
                 deleteHotelInfo(invoiceHttp.getInvoiceNumber()),
                 EInvoiceType.valueOf(invoiceHttp.getInvoiceType()),
                 invoiceHttp.getInvoiceAmount(),
+                invoiceHttp.getInvoiceBalance(),
                 bookingDtos,
                 invoiceHttp.getHasAttachment(), //!= null ? objKafka.getHasAttachment() : false
                 invoiceHttp.getInvoiceParent() != null ? this.invoiceService.findById(invoiceHttp.getInvoiceParent()) : null,
                 LocalDateTime.parse(invoiceHttp.getInvoiceDate()),
                 hotelDto,
                 agencyDto,
-                invoiceHttp.getAutoRec()
+                invoiceHttp.getAutoRec(),
+                invoiceHttp.getInvoiceStatus() != null ? this.manageInvoiceStatusService.findById(invoiceHttp.getInvoiceStatus()) : null
         );
 
         this.invoiceService.create(invoiceDto);

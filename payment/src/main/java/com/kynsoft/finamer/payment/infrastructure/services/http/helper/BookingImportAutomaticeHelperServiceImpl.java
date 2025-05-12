@@ -1,18 +1,14 @@
 package com.kynsoft.finamer.payment.infrastructure.services.http.helper;
 
 import com.kynsof.share.core.domain.http.entity.BookingHttp;
-import com.kynsoft.finamer.payment.domain.dto.ManageAgencyDto;
-import com.kynsoft.finamer.payment.domain.dto.ManageBookingDto;
-import com.kynsoft.finamer.payment.domain.dto.ManageHotelDto;
-import com.kynsoft.finamer.payment.domain.dto.ManageInvoiceDto;
+import com.kynsoft.finamer.payment.domain.dto.*;
 import com.kynsoft.finamer.payment.domain.dtoEnum.EInvoiceType;
-import com.kynsoft.finamer.payment.domain.services.IManageAgencyService;
-import com.kynsoft.finamer.payment.domain.services.IManageBookingService;
-import com.kynsoft.finamer.payment.domain.services.IManageHotelService;
-import com.kynsoft.finamer.payment.domain.services.IManageInvoiceService;
+import com.kynsoft.finamer.payment.domain.services.*;
+
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,15 +18,18 @@ public class BookingImportAutomaticeHelperServiceImpl {
     private final IManageBookingService bookingService;
     private final IManageHotelService hotelService;
     private final IManageAgencyService manageAgencyService;
+    private final IManageInvoiceStatusService manageInvoiceStatusService;
 
     public BookingImportAutomaticeHelperServiceImpl(IManageInvoiceService invoiceService,
-            IManageBookingService bookingService,
-            IManageHotelService hotelService,
-            IManageAgencyService manageAgencyService) {
+                                                    IManageBookingService bookingService,
+                                                    IManageHotelService hotelService,
+                                                    IManageAgencyService manageAgencyService,
+                                                    IManageInvoiceStatusService manageInvoiceStatusService) {
         this.invoiceService = invoiceService;
         this.bookingService = bookingService;
         this.hotelService = hotelService;
         this.manageAgencyService = manageAgencyService;
+        this.manageInvoiceStatusService = manageInvoiceStatusService;
     }
 
     public void createInvoice(BookingHttp bookingHttp) {
@@ -41,6 +40,12 @@ public class BookingImportAutomaticeHelperServiceImpl {
     }
 
     private void create(BookingHttp bookingHttp, List<ManageBookingDto> bookingDtos, ManageHotelDto hotelDto, ManageAgencyDto agencyDto) {
+        List<UUID> invoiceStatusIds = bookingDtos.stream()
+                .filter(bookingDto -> Objects.nonNull(bookingDto.getInvoice()) && Objects.nonNull(bookingDto.getInvoice().getStatus()))
+                .map(bookingDto -> bookingDto.getInvoice().getStatus().getId())
+                .collect(Collectors.toList());
+
+        Map<UUID, ManageInvoiceStatusDto> invoiceStatusDtoMap = this.getInvoiceStatusMap(invoiceStatusIds);
 
         createBookingList(bookingHttp.getInvoice().getBookings(), bookingDtos);
         ManageInvoiceDto invoiceDto = new ManageInvoiceDto(
@@ -50,13 +55,15 @@ public class BookingImportAutomaticeHelperServiceImpl {
                 deleteHotelInfo(bookingHttp.getInvoice().getInvoiceNumber()),
                 EInvoiceType.valueOf(bookingHttp.getInvoice().getInvoiceType()),
                 bookingHttp.getInvoice().getInvoiceAmount(),
+                bookingHttp.getInvoice().getInvoiceBalance(),
                 bookingDtos,
                 bookingHttp.getInvoice().getHasAttachment(), //!= null ? objKafka.getHasAttachment() : false
                 bookingHttp.getInvoice().getInvoiceParent() != null ? this.invoiceService.findById(bookingHttp.getInvoice().getInvoiceParent()) : null,
                 LocalDateTime.parse(bookingHttp.getInvoice().getInvoiceDate()),
                 hotelDto,
                 agencyDto,
-                bookingHttp.getInvoice().getAutoRec()
+                bookingHttp.getInvoice().getAutoRec(),
+                this.getInvoiceStatusFromMap(invoiceStatusDtoMap, bookingHttp.getInvoice().getInvoiceStatus())
         );
 
         this.invoiceService.create(invoiceDto);
@@ -84,6 +91,22 @@ public class BookingImportAutomaticeHelperServiceImpl {
                     LocalDateTime.parse(booking.getBookingDate())
             ));
         }
+    }
+
+    private Map<UUID, ManageInvoiceStatusDto> getInvoiceStatusMap(List<UUID> invoiceStatusIds){
+        if(Objects.nonNull(invoiceStatusIds) || !invoiceStatusIds.isEmpty()){
+            return this.manageInvoiceStatusService.findByIds(invoiceStatusIds).stream()
+                    .collect(Collectors.toMap(ManageInvoiceStatusDto::getId, manageInvoiceStatusDto -> manageInvoiceStatusDto));
+        }
+        return null;
+    }
+
+    private ManageInvoiceStatusDto getInvoiceStatusFromMap(Map<UUID, ManageInvoiceStatusDto> map, UUID id){
+        if(Objects.nonNull(map) && Objects.nonNull(id)){
+            return map.get(id);
+        }
+
+        return null;
     }
 
     private String deleteHotelInfo(String input) {

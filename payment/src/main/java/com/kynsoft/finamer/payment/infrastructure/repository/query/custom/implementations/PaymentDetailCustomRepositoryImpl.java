@@ -1189,6 +1189,7 @@ public class PaymentDetailCustomRepositoryImpl implements PaymentDetailCustomRep
                                 tuple.get(66, Long.class),
                                 tuple.get(67, String.class),
                                 tuple.get(68, Double.class),
+                                tuple.get(68, Double.class),
                                 tuple.get(69, LocalDateTime.class),
                                 tuple.get(70, Boolean.class),
                                 null,
@@ -1240,7 +1241,8 @@ public class PaymentDetailCustomRepositoryImpl implements PaymentDetailCustomRep
                                         tuple.get(105, LocalDateTime.class),
                                         tuple.get(106, LocalDateTime.class)
                                 ) : null,
-                                tuple.get(107, Boolean.class)
+                                tuple.get(107, Boolean.class),
+                                null
                         ) : null,
                         (tuple.get(108, UUID.class) != null) ? new ManageBankAccount(
                                 tuple.get(108, UUID.class),
@@ -1319,6 +1321,7 @@ public class PaymentDetailCustomRepositoryImpl implements PaymentDetailCustomRep
                                 tuple.get(170, Long.class),
                                 tuple.get(171, String.class),
                                 tuple.get(172, Double.class),
+                                tuple.get(172, Double.class),
                                 tuple.get(173, LocalDateTime.class),
                                 tuple.get(174, Boolean.class),
                                 null,
@@ -1326,7 +1329,8 @@ public class PaymentDetailCustomRepositoryImpl implements PaymentDetailCustomRep
                                 null,
                                 null,
                                 null,
-                                tuple.get(176, Boolean.class)
+                                tuple.get(176, Boolean.class),
+                                null
                         ) : null,
                         null,
                         tuple.get(177, LocalDateTime.class)

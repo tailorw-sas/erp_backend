@@ -43,7 +43,7 @@ public class ManageInvoiceServiceImpl implements IManageInvoiceService {
 
     @Override
     public ManageInvoiceDto findById(UUID id) {
-        Optional<Invoice> userSystem = this.repositoryQuery.findById(id);
+        Optional<Invoice> userSystem = this.repositoryQuery.findByIdCustom(id);
         if (userSystem.isPresent()) {
             return userSystem.get().toAggregate();
         }
@@ -55,7 +55,7 @@ public class ManageInvoiceServiceImpl implements IManageInvoiceService {
         filterCriteria(filterCriteria);
 
         GenericSpecificationsBuilder<Invoice> specifications = new GenericSpecificationsBuilder<>(filterCriteria);
-        Page<Invoice> data = this.repositoryQuery.findAll(specifications, pageable);
+        Page<Invoice> data = this.repositoryQuery.findAllCustom(specifications, pageable);
 
         return getPaginatedResponse(data);
     }

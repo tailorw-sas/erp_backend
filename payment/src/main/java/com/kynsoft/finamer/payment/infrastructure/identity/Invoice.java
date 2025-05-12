@@ -37,6 +37,7 @@ public class Invoice {
     private Long invoiceNo;
     private String invoiceNumber;
     private Double invoiceAmount;
+    private Double invoiceBalance;
     private LocalDateTime invoiceDate;
 
     @Column(columnDefinition = "boolean DEFAULT FALSE")
@@ -62,12 +63,17 @@ public class Invoice {
 
     private Boolean autoRec;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "manage_invoice_status")
+    private ManageInvoiceStatus status;
+
     public Invoice(ManageInvoiceDto dto) {
         this.id = dto.getId();
         this.invoiceId = dto.getInvoiceId();
         this.invoiceNumber = dto.getInvoiceNumber();
         this.invoiceType = dto.getInvoiceType();
         this.invoiceAmount = dto.getInvoiceAmount();
+        this.invoiceBalance = dto.getInvoiceBalance();
         this.bookings = dto.getBookings() != null ? dto.getBookings().stream().map(Booking::new).collect(Collectors.toList()) : null;
         this.invoiceNo = dto.getInvoiceNo();
         this.hasAttachment = dto.getHasAttachment();
@@ -76,6 +82,7 @@ public class Invoice {
         this.hotel = dto.getHotel() != null ? new ManageHotel(dto.getHotel()) : null;
         this.agency = dto.getAgency() != null ? new ManageAgency(dto.getAgency()) : null;
         this.autoRec = dto.getAutoRec();
+        this.status = Objects.nonNull(dto.getStatus()) ? new ManageInvoiceStatus(dto.getStatus()) : null;
     }
 
     public ManageInvoiceDto toAggregateSample() {
@@ -86,13 +93,15 @@ public class Invoice {
                 invoiceNumber,
                 invoiceType,
                 invoiceAmount,
+                invoiceBalance,
                 null,
                 hasAttachment,
                 null,
                 invoiceDate,
                 Objects.nonNull(hotel) ? hotel.toAggregate() : null,
                 Objects.nonNull(agency) ? agency.toAggregate() : null,
-                autoRec
+                autoRec,
+                Objects.nonNull(status) ? status.toAggregate() : null
         );
     }
 
@@ -104,6 +113,7 @@ public class Invoice {
                 invoiceNumber,
                 invoiceType,
                 invoiceAmount,
+                invoiceBalance,
                 bookings != null ? bookings.stream().map(_booking -> {
                     ManageBookingDto bookingDto = _booking.toAggregateSimple();
                     bookingDto.setInvoice(_booking.getInvoice().toAggregateParent());
@@ -114,7 +124,8 @@ public class Invoice {
                 invoiceDate,
                 Objects.nonNull(hotel) ? hotel.toAggregate() : null,
                 Objects.nonNull(agency) ? agency.toAggregate() : null,
-                autoRec
+                autoRec,
+                Objects.nonNull(status) ? status.toAggregate() : null
         );
     }
 
@@ -126,9 +137,11 @@ public class Invoice {
                 null,
                 invoiceType,
                 invoiceAmount,
+                invoiceBalance,
                 bookings != null ? bookings.stream().map(b -> {
                             return b.toAggregateSimple();
                         }).collect(Collectors.toList()) : null,
+                null,
                 null,
                 null,
                 null,
@@ -146,13 +159,15 @@ public class Invoice {
                 invoiceNumber,
                 invoiceType,
                 invoiceAmount,
+                invoiceBalance,
                 null,
                 hasAttachment,
                 null,
                 invoiceDate,
                 Objects.nonNull(hotel) ? hotel.toAggregate() : null,
                 Objects.nonNull(agency) ? agency.toAggregate() : null,
-                autoRec
+                autoRec,
+                Objects.nonNull(status) ? status.toAggregate() : null
         );
     }
 }

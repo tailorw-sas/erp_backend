@@ -1,26 +1,229 @@
 package com.kynsoft.finamer.payment.infrastructure.repository.query.custom.implementations;
 
-import com.kynsoft.finamer.payment.domain.dtoEnum.EInvoiceType;
+import com.kynsof.share.core.infrastructure.repository.IndexRef;
 import com.kynsoft.finamer.payment.infrastructure.identity.*;
+import com.kynsoft.finamer.payment.infrastructure.repository.mapper.BookingMapper;
+import com.kynsoft.finamer.payment.infrastructure.repository.mapper.InvoiceMapper;
 import com.kynsoft.finamer.payment.infrastructure.repository.query.custom.InvoiceCustomRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Tuple;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.query.QueryUtils;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
 public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
 
+    private final InvoiceMapper invoiceMapper;
+    private final BookingMapper bookingMapper;
+
+    public InvoiceCustomRepositoryImpl(BookingMapper bookingMapper,
+                                       InvoiceMapper invoiceMapper){
+        this.bookingMapper = bookingMapper;
+        this.invoiceMapper = invoiceMapper;
+    }
+
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Override
+    public Page<Invoice> findAllCustom(Specification<Invoice> specification, Pageable pageable) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+
+        Root<Invoice> root = query.from(Invoice.class);
+        Join<Invoice, Invoice> invoiceJoin = root.join("parent", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> invoiceHotelJoin = invoiceJoin.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> invoiceAgencyJoin = invoiceJoin.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> invoiceAgencyTypeJoin = invoiceAgencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> invoiceClientJoin = invoiceAgencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> invoiceCountryJoin = invoiceAgencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> invoiceCountryManageLanguageJoin = invoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> invoiceStatusJoin = root.join("status", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> hotelJoin = root.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> agencyJoin = root.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> agencyTypeJoin = agencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> clientJoin = agencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> countryJoin = agencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> countryManageLanguageJoin = countryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> statusJoin = root.join("status", JoinType.LEFT);
+
+        List<Selection<?>> selections = this.getInvoiceSelections(root,
+                invoiceJoin,
+                invoiceHotelJoin,
+                invoiceAgencyJoin,
+                invoiceAgencyTypeJoin,
+                invoiceClientJoin,
+                invoiceCountryJoin,
+                invoiceCountryManageLanguageJoin,
+                invoiceStatusJoin,
+                hotelJoin,
+                agencyJoin,
+                agencyTypeJoin,
+                clientJoin,
+                countryJoin,
+                countryManageLanguageJoin,
+                statusJoin);
+
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        if(specification != null){
+            Predicate predicate = specification.toPredicate(root, query, cb);
+            query.where(predicate);
+        }
+        query.orderBy(QueryUtils.toOrders(pageable.getSort(), root, cb));
+
+        TypedQuery<Tuple> typedQuery = entityManager.createQuery(query);
+        typedQuery.setFirstResult((int)pageable.getOffset());
+        typedQuery.setMaxResults(pageable.getPageSize());
+
+        List<Tuple> tuples = typedQuery.getResultList();
+
+        List<UUID> invoiceIds = tuples.stream()
+                .map(tuple -> tuple.get(0, UUID.class))
+                .collect(Collectors.toList());
+
+        Map<UUID, List<Booking>> bookingsMap = this.getBookingsByInvoiceIdsMap(invoiceIds);
+
+        List<Invoice> results = tuples.stream()
+                .map(tuple -> this.convertTupleToInvoice(tuple, 0, bookingsMap.get(tuple.get(0, UUID.class))))
+                .collect(Collectors.toList());
+
+        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
+        Root<Invoice> countRoot = countQuery.from(Invoice.class);
+        countQuery.select(cb.count(countRoot));
+
+        if(specification != null){
+            Predicate countPredicate = specification.toPredicate(countRoot, countQuery, cb);
+            countQuery.where(countPredicate);
+        }
+        long total = entityManager.createQuery(countQuery).getSingleResult();
+
+        return new PageImpl<>(results, pageable, total);
+    }
+
+    @Override
+    public Optional<Invoice> findByIdCustom(UUID id) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+
+        Root<Invoice> root = query.from(Invoice.class);
+        Join<Invoice, Invoice> invoiceJoin = root.join("parent", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> invoiceHotelJoin = invoiceJoin.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> invoiceAgencyJoin = invoiceJoin.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> invoiceAgencyTypeJoin = invoiceAgencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> invoiceClientJoin = invoiceAgencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> invoiceCountryJoin = invoiceAgencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> invoiceCountryManageLanguageJoin = invoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> invoiceStatusJoin = root.join("status", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> hotelJoin = root.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> agencyJoin = root.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> agencyTypeJoin = agencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> clientJoin = agencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> countryJoin = agencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> countryManageLanguageJoin = countryJoin.join("managerLanguage", JoinType.LEFT);
+
+        Join<Invoice, ManageInvoiceStatus> statusJoin = root.join("status", JoinType.LEFT);
+
+        List<Selection<?>> selections = this.getInvoiceSelections(root,
+                invoiceJoin,
+                invoiceHotelJoin,
+                invoiceAgencyJoin,
+                invoiceAgencyTypeJoin,
+                invoiceClientJoin,
+                invoiceCountryJoin,
+                invoiceCountryManageLanguageJoin,
+                invoiceStatusJoin,
+                hotelJoin,
+                agencyJoin,
+                agencyTypeJoin,
+                clientJoin,
+                countryJoin,
+                countryManageLanguageJoin,
+                statusJoin);
+
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        query.where(cb.equal(root.get("id"), id));
+
+        try{
+            Tuple tuple = entityManager.createQuery(query).getSingleResult();
+            List<Booking> bookings = this.getBookingsByInvoiceId(id);
+
+            Invoice result = this.convertTupleToInvoice(tuple, 0, bookings);
+            return Optional.of(result);
+        }catch (NoResultException e){
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<Invoice> findByInvoiceIdCustom(Long invoiceId) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+
+        Root<Invoice> root = query.from(Invoice.class);
+        Join<Invoice, Invoice> invoiceJoin = root.join("parent", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> invoiceHotelJoin = invoiceJoin.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> invoiceAgencyJoin = invoiceJoin.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> invoiceAgencyTypeJoin = invoiceAgencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> invoiceClientJoin = invoiceAgencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> invoiceCountryJoin = invoiceAgencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> invoiceCountryManageLanguageJoin = invoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> invoiceStatusJoin = root.join("status", JoinType.LEFT);
+
+        Join<Invoice, ManageHotel> hotelJoin = root.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> agencyJoin = root.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> agencyTypeJoin = agencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> clientJoin = agencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> countryJoin = agencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> countryManageLanguageJoin = countryJoin.join("managerLanguage", JoinType.LEFT);
+
+        Join<Invoice, ManageInvoiceStatus> statusJoin = root.join("status", JoinType.LEFT);
+
+        List<Selection<?>> selections = this.getInvoiceSelections(root,
+                invoiceJoin,
+                invoiceHotelJoin,
+                invoiceAgencyJoin,
+                invoiceAgencyTypeJoin,
+                invoiceClientJoin,
+                invoiceCountryJoin,
+                invoiceCountryManageLanguageJoin,
+                invoiceStatusJoin,
+                hotelJoin,
+                agencyJoin,
+                agencyTypeJoin,
+                clientJoin,
+                countryJoin,
+                countryManageLanguageJoin,
+                statusJoin);
+
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        query.where(cb.equal(root.get("invoiceId"), invoiceId));
+
+        try{
+            Tuple tuple = entityManager.createQuery(query).getSingleResult();
+            List<Booking> bookings = this.getBookingsByInvoiceId(tuple.get(0, UUID.class));
+
+            Invoice result = this.convertTupleToInvoice(tuple, 0, bookings);
+            return Optional.of(result);
+        }catch (NoResultException e){
+            return Optional.empty();
+        }
+
+    }
 
     @Override
     public List<Invoice> findAllByIdInCustom(List<UUID> ids) {
@@ -36,6 +239,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         Join<ManageAgency, ManageClient> invoiceClientJoin = invoiceAgencyJoin.join("client", JoinType.LEFT);
         Join<ManageAgency, ManageCountry> invoiceCountryJoin = invoiceAgencyJoin.join("country", JoinType.LEFT);
         Join<ManageCountry, ManageLanguage> invoiceCountryManageLanguageJoin = invoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> invoiceStatusJoin = root.join("status", JoinType.LEFT);
 
         Join<Invoice, ManageHotel> hotelJoin = root.join("hotel", JoinType.LEFT);
         Join<Invoice, ManageAgency> agencyJoin = root.join("agency", JoinType.LEFT);
@@ -43,6 +247,8 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         Join<ManageAgency, ManageClient> clientJoin = agencyJoin.join("client", JoinType.LEFT);
         Join<ManageAgency, ManageCountry> countryJoin = agencyJoin.join("country", JoinType.LEFT);
         Join<ManageCountry, ManageLanguage> countryManageLanguageJoin = countryJoin.join("managerLanguage", JoinType.LEFT);
+
+        Join<Invoice, ManageInvoiceStatus> statusJoin = root.join("status", JoinType.LEFT);
 
         List<Selection<?>> selections = this.getInvoiceSelections(root,
                 invoiceJoin,
@@ -52,12 +258,14 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                 invoiceClientJoin,
                 invoiceCountryJoin,
                 invoiceCountryManageLanguageJoin,
+                invoiceStatusJoin,
                 hotelJoin,
                 agencyJoin,
                 agencyTypeJoin,
                 clientJoin,
                 countryJoin,
-                countryManageLanguageJoin);
+                countryManageLanguageJoin,
+                statusJoin);
 
         query.multiselect(selections.toArray(new Selection[0]));
 
@@ -79,17 +287,20 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
 
                                                     Join<Invoice, ManageHotel> invoiceHotelJoin,
                                                     Join<Invoice, ManageAgency> invoiceAgencyJoin,
+
                                                     Join<ManageAgency, ManageAgencyType> invoiceAgencyTypeJoin,
                                                     Join<ManageAgency, ManageClient> invoiceClientJoin,
                                                     Join<ManageAgency, ManageCountry> invoiceCountryJoin,
                                                     Join<ManageCountry, ManageLanguage> invoiceCountryManageLanguageJoin,
+                                                    Join<Invoice, ManageInvoiceStatus> invoiceStatusJoin,
 
                                                     Join<Invoice, ManageHotel> hotelJoin,
                                                     Join<Invoice, ManageAgency> agencyJoin,
                                                     Join<ManageAgency, ManageAgencyType> agencyTypeJoin,
                                                     Join<ManageAgency, ManageClient> clientJoin,
                                                     Join<ManageAgency, ManageCountry> countryJoin,
-                                                    Join<ManageCountry, ManageLanguage> countryManageLanguageJoin){
+                                                    Join<ManageCountry, ManageLanguage> countryManageLanguageJoin,
+                                                    Join<Invoice, ManageInvoiceStatus> statusJoin){
         List<Selection<?>> selections = new ArrayList<>();
 
         selections.add(root.get("id"));
@@ -97,6 +308,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         selections.add(root.get("invoiceNo"));
         selections.add(root.get("invoiceNumber"));
         selections.add(root.get("invoiceAmount"));
+        selections.add(root.get("invoiceBalance"));
         selections.add(root.get("invoiceDate"));
         selections.add(root.get("hasAttachment"));
 
@@ -162,6 +374,10 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
 
         selections.add(invoiceJoin.get("autoRec"));
 
+        selections.add(invoiceStatusJoin.get("id"));
+        selections.add(invoiceStatusJoin.get("code"));
+        selections.add(invoiceStatusJoin.get("name"));
+
         //Fin Invoice Parent
 
         selections.add(root.get("invoiceType"));
@@ -218,15 +434,22 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
 
         selections.add(root.get("autoRec"));
 
+        selections.add(statusJoin.get("id"));
+        selections.add(statusJoin.get("code"));
+        selections.add(statusJoin.get("name"));
         return selections;
     }
 
     private Invoice convertTupleToInvoice(Tuple tuple, int i, List<Booking> bookings){
-        return new Invoice(
+        IndexRef index = new IndexRef(i);
+        return this.invoiceMapper.map(tuple, index);
+
+        /*return new Invoice(
                 tuple.get(i++, UUID.class),
                 tuple.get(i++, Long.class),
                 tuple.get(i++, Long.class),
                 tuple.get(i++, String.class),
+                tuple.get(i++, Double.class),
                 tuple.get(i++, Double.class),
                 tuple.get(i++, LocalDateTime.class),
                 tuple.get(i++, Boolean.class),
@@ -235,6 +458,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                         tuple.get(i++, Long.class),
                         tuple.get(i++, Long.class),
                         tuple.get(i++, String.class),
+                        tuple.get(i++, Double.class),
                         tuple.get(i++, Double.class),
                         tuple.get(i++, LocalDateTime.class),
                         tuple.get(i++, Boolean.class),
@@ -295,8 +519,13 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                                 tuple.get(i++, LocalDateTime.class),
                                 tuple.get(i++, LocalDateTime.class)
                         ) : skip( i += 31),
-                        tuple.get(i++, Boolean.class)
-                ) : skip( i += 51),
+                        tuple.get(i++, Boolean.class),
+                        (tuple.get(i, UUID.class) != null) ? new ManageInvoiceStatus(
+                                tuple.get(i++, UUID.class),
+                                tuple.get(i++, String.class),
+                                tuple.get(i++, String.class)
+                        ) : skip( i += 3)
+                ) : skip( i += 55),
                 tuple.get(i++, EInvoiceType.class),
                 bookings,
                 (tuple.get(i, UUID.class) != null) ? new ManageHotel(
@@ -352,9 +581,64 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                         tuple.get(i++, LocalDateTime.class),
                         tuple.get(i++, LocalDateTime.class)
                 ) : skip( i += 31),
-                tuple.get(i++, Boolean.class)
+                tuple.get(i++, Boolean.class),
+                (tuple.get(i, UUID.class) != null) ? new ManageInvoiceStatus(
+                        tuple.get(i++, UUID.class),
+                        tuple.get(i++, String.class),
+                        tuple.get(i++, String.class)
+                ) : skip( i += 3)
+        );
+        */
+    }
+
+    private List<Booking> getBookingsByInvoiceId(UUID invoiceId){
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Tuple> query = cb.createTupleQuery();
+
+        Root<Invoice> root = query.from(Invoice.class);
+
+        //Join para los bookings del Invoice
+        Join<Invoice, Booking> bookingJoin = root.join("bookings", JoinType.LEFT);
+
+        //Join para el Invoice parent del Booking del invoice
+        Join<Booking, Invoice> bookingInvoiceJoin = bookingJoin.join("invoice", JoinType.LEFT);
+        Join<Invoice, ManageHotel> bookingInvoiceHotelJoin = bookingInvoiceJoin.join("hotel", JoinType.LEFT);
+        Join<Invoice, ManageAgency> bookingInvoiceAgencyJoin = bookingInvoiceJoin.join("agency", JoinType.LEFT);
+        Join<ManageAgency, ManageAgencyType> bookingInvoiceAgencyTypeJoin = bookingInvoiceAgencyJoin.join("agencyType", JoinType.LEFT);
+        Join<ManageAgency, ManageClient> bookingInvoiceClientJoin = bookingInvoiceAgencyJoin.join("client", JoinType.LEFT);
+        Join<ManageAgency, ManageCountry> bookingInvoiceCountryJoin = bookingInvoiceAgencyJoin.join("country", JoinType.LEFT);
+        Join<ManageCountry, ManageLanguage> bookingInvoiceCountryManageLanguageJoin = bookingInvoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> bookingInvoiceManageStatus = bookingInvoiceJoin.join("status", JoinType.LEFT);
+
+        //Join para el Booking parent del Booking del invoice
+        Join<Booking, Booking> bookingBookingJoin = bookingJoin.join("parent", JoinType.LEFT);
+
+        List<Selection<?>> selections = this.getBookingByInvoiceIdSelections(root,
+                bookingJoin,
+                bookingInvoiceJoin,
+                bookingInvoiceHotelJoin,
+                bookingInvoiceAgencyJoin,
+                bookingInvoiceAgencyTypeJoin,
+                bookingInvoiceClientJoin,
+                bookingInvoiceCountryJoin,
+                bookingInvoiceCountryManageLanguageJoin,
+                bookingInvoiceManageStatus,
+                bookingBookingJoin
         );
 
+        query.multiselect(selections.toArray(new Selection[0]));
+
+        query.where(cb.equal(root.get("id"), invoiceId));
+
+        List<Tuple> tuples = entityManager.createQuery(query).getResultList();
+
+        List<Booking> bookingsByEmployeeId = tuples.stream()
+                .map(tuple -> {
+                    return this.convertTupleToBooking(tuple, 1);
+                })
+                .collect(Collectors.toList());
+
+        return bookingsByEmployeeId;
     }
 
     private Map<UUID, List<Booking>> getBookingsByInvoiceIdsMap(List<UUID> invoiceIds){
@@ -373,6 +657,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         Join<ManageAgency, ManageClient> bookingInvoiceClientJoin = bookingInvoiceAgencyJoin.join("client", JoinType.LEFT);
         Join<ManageAgency, ManageCountry> bookingInvoiceCountryJoin = bookingInvoiceAgencyJoin.join("country", JoinType.LEFT);
         Join<ManageCountry, ManageLanguage> bookingInvoiceCountryManageLanguageJoin = bookingInvoiceCountryJoin.join("managerLanguage", JoinType.LEFT);
+        Join<Invoice, ManageInvoiceStatus> bookingInvoiceManageStatus = bookingInvoiceJoin.join("status", JoinType.LEFT);
 
         //Join para el Booking parent del Booking del invoice
         Join<Booking, Booking> bookingBookingJoin = bookingJoin.join("parent", JoinType.LEFT);
@@ -387,6 +672,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                 bookingInvoiceClientJoin,
                 bookingInvoiceCountryJoin,
                 bookingInvoiceCountryManageLanguageJoin,
+                bookingInvoiceManageStatus,
                 bookingBookingJoin
                 );
 
@@ -415,7 +701,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                                                                Join<ManageAgency, ManageClient> bookingInvoiceClientJoin,
                                                                Join<ManageAgency, ManageCountry> bookingInvoiceCountryJoin,
                                                                Join<ManageCountry, ManageLanguage> bookingInvoiceCountryManageLanguageJoin,
-
+                                                               Join<Invoice, ManageInvoiceStatus> bookingInvoiceManageStatus,
                                                                Join<Booking, Booking> bookingBookingJoin){
         List<Selection<?>> selections = new ArrayList<>();
 
@@ -442,6 +728,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         selections.add(bookingInvoiceJoin.get("invoiceNo"));
         selections.add(bookingInvoiceJoin.get("invoiceNumber"));
         selections.add(bookingInvoiceJoin.get("invoiceAmount"));
+        selections.add(bookingInvoiceJoin.get("invoiceBalance"));
         selections.add(bookingInvoiceJoin.get("invoiceDate"));
         selections.add(bookingInvoiceJoin.get("hasAttachment"));
         selections.add(bookingInvoiceJoin.get("invoiceType"));
@@ -497,6 +784,10 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
         selections.add(bookingInvoiceAgencyJoin.get("updatedAt"));
 
         selections.add(bookingInvoiceJoin.get("autoRec"));
+
+        selections.add(bookingInvoiceManageStatus.get("id"));
+        selections.add(bookingInvoiceManageStatus.get("code"));
+        selections.add(bookingInvoiceManageStatus.get("name"));
         //Fin Invoice Parent
 
         //Booking parent
@@ -522,7 +813,9 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
     }
 
     private Booking convertTupleToBooking(Tuple tuple, int i){
-        return new Booking(
+        IndexRef index = new IndexRef(i);
+        return this.bookingMapper.map(tuple, index, true);
+        /*return new Booking(
                 tuple.get(i++, UUID.class),
                 tuple.get(i++, Long.class),
                 tuple.get(i++, String.class),
@@ -541,6 +834,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                         tuple.get(i++, Long.class),
                         tuple.get(i++, Long.class),
                         tuple.get(i++, String.class),
+                        tuple.get(i++, Double.class),
                         tuple.get(i++, Double.class),
                         tuple.get(i++, LocalDateTime.class),
                         tuple.get(i++, Boolean.class),
@@ -600,8 +894,13 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                                 tuple.get(i++, LocalDateTime.class),
                                 tuple.get(i++, LocalDateTime.class)
                         ) : skip( i += 31),
-                        tuple.get(i++, Boolean.class)
-                ) : skip( i += 51),
+                        tuple.get(i++, Boolean.class),
+                        (tuple.get(i, UUID.class) != null) ? new ManageInvoiceStatus(
+                            tuple.get(i++, UUID.class),
+                            tuple.get(i++, String.class),
+                            tuple.get(i++, String.class)
+                        ) : skip( i += 3)
+                ) : skip( i += 55),
                 (tuple.get(i, UUID.class) != null) ? new Booking(
                         tuple.get(i++, UUID.class),
                         tuple.get(i++, Long.class),
@@ -622,6 +921,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                 ) : skip( i  += 14),
                 tuple.get(i++, LocalDateTime.class)
         );
+         */
     }
 
     @SuppressWarnings("unchecked")

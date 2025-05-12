@@ -82,10 +82,12 @@ public class BookingImportAutomaticeHelperServiceImpl {
         invoiceHttp.setInvoiceNumber(invoice.getInvoiceNumber());
         invoiceHttp.setInvoiceType(invoice.getInvoiceType().name());
         invoiceHttp.setInvoiceAmount(invoice.getInvoiceAmount());
+        invoiceHttp.setInvoiceBalance(invoice.getDueAmount());
         invoiceHttp.setAttachments(createAttachmentHttp(invoice));
         invoiceHttp.setHasAttachment(invoice.getAttachments() != null && !invoice.getAttachments().isEmpty());
         invoiceHttp.setInvoiceDate(invoice.getInvoiceDate().toString());
         invoiceHttp.setAutoRec(invoice.getAutoRec());
+        invoiceHttp.setInvoiceStatus(invoice.getManageInvoiceStatus() != null ? invoice.getManageInvoiceStatus().getId() : null);
 
         ManageInvoiceDto invoiceDto = this.invoiceService.findById(invoice.getId());
         invoiceHttp.setBookings(createBookingHttpForInvoice(invoiceDto.getBookings()));
