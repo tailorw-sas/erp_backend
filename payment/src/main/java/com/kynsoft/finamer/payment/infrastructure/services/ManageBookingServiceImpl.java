@@ -14,7 +14,6 @@ import com.kynsoft.finamer.payment.domain.dto.projection.booking.BookingProjecti
 import com.kynsoft.finamer.payment.domain.dtoEnum.Status;
 import com.kynsoft.finamer.payment.domain.services.IManageBookingService;
 import com.kynsoft.finamer.payment.infrastructure.identity.Booking;
-import com.kynsoft.finamer.payment.infrastructure.identity.Invoice;
 import com.kynsoft.finamer.payment.infrastructure.repository.command.ManageBookingWriteDataJPARepository;
 import com.kynsoft.finamer.payment.infrastructure.repository.query.ManageBookingReadDataJPARepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -195,19 +194,6 @@ public class ManageBookingServiceImpl implements IManageBookingService {
         return repositoryQuery.findAllById(ids).stream()
                 .map(Booking::toAggregate)
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public void createAll(List<ManageBookingDto> bookingDtos) {
-        if(Objects.isNull(bookingDtos)){
-            throw new IllegalArgumentException("The booking list must not be null");
-        }
-
-        List<Booking> bookings = bookingDtos.stream()
-                .map(Booking::new)
-                .collect(Collectors.toList());
-
-        this.repositoryCommand.saveAll(bookings);
     }
 
 }

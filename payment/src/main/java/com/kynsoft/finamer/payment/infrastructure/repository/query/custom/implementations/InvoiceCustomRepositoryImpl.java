@@ -10,7 +10,10 @@ import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Repository
@@ -295,7 +298,7 @@ public class InvoiceCustomRepositoryImpl implements InvoiceCustomRepository {
                         tuple.get(i++, Boolean.class)
                 ) : skip( i += 51),
                 tuple.get(i++, EInvoiceType.class),
-                Objects.nonNull(bookings) ? bookings : Collections.emptyList(),
+                bookings,
                 (tuple.get(i, UUID.class) != null) ? new ManageHotel(
                         tuple.get(i++, UUID.class),
                         tuple.get(i++, String.class),

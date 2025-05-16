@@ -1,7 +1,6 @@
 package com.kynsoft.finamer.payment.application.services.payment.apply;
 
 import com.kynsof.share.core.domain.RulesChecker;
-import com.kynsof.share.core.domain.http.entity.InvoiceHttp;
 import com.kynsof.share.core.domain.rules.ValidateObjectNotNullRule;
 import com.kynsof.share.core.infrastructure.util.DateUtil;
 import com.kynsof.share.utils.BankerRounding;
@@ -16,7 +15,6 @@ import com.kynsoft.finamer.payment.infrastructure.services.http.helper.InvoiceIm
 import com.kynsoft.finamer.payment.infrastructure.services.kafka.producer.updateBooking.ProducerUpdateListBookingService;
 import jakarta.transaction.Transactional;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
@@ -24,10 +22,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 public class ApplyPaymentService {
 
@@ -40,8 +36,6 @@ public class ApplyPaymentService {
     private final IManageBookingService manageBookingService;
     private final IManagePaymentStatusService statusService;
     private final IManageEmployeeService manageEmployeeService;
-    private final InvoiceHttpUUIDService invoiceHttpUUIDService;
-    private final InvoiceImportAutomaticeHelperServiceImpl invoiceImportAutomaticeHelperServiceImpl;
 
     @Getter
     private List<PaymentDetailDto> createPaymentDetails;
@@ -57,9 +51,7 @@ public class ApplyPaymentService {
                                IPaymentCloseOperationService paymentCloseOperationService,
                                IManageBookingService manageBookingService,
                                IManagePaymentStatusService statusService,
-                               IManageEmployeeService manageEmployeeService,
-                               InvoiceHttpUUIDService invoiceHttpUUIDService,
-                               InvoiceImportAutomaticeHelperServiceImpl invoiceImportAutomaticeHelperServiceImpl){
+                               IManageEmployeeService manageEmployeeService){
         this.paymentService = paymentService;
         this.manageInvoiceService = manageInvoiceService;
         this.paymentDetailService = paymentDetailService;
@@ -69,10 +61,7 @@ public class ApplyPaymentService {
         this.manageBookingService = manageBookingService;
         this.statusService = statusService;
         this.manageEmployeeService = manageEmployeeService;
-        this.invoiceHttpUUIDService = invoiceHttpUUIDService;
-        this.invoiceImportAutomaticeHelperServiceImpl = invoiceImportAutomaticeHelperServiceImpl;
     }
-
     @Transactional
     public PaymentDto apply(UUID paymentId,
                             boolean shouldApplyPaymentBalance,
@@ -191,56 +180,7 @@ public class ApplyPaymentService {
     }
 
     private List<ManageInvoiceDto> createInvoiceQueue(List<UUID> invoiceIds) {
-        List<ManageInvoiceDto> invoices = this.manageInvoiceService.findSortedInvoicesByIdIn(invoiceIds);
-        if (invoices != null && invoiceIds.size() == invoices.size()) {
-            return invoices;
-        }
-
-        Set<UUID> foundIds = invoices == null ? Set.of() :
-                invoices.stream().map(ManageInvoiceDto::getId).collect(Collectors.toSet());
-
-        List<UUID> invoicesToFind = invoiceIds.stream()
-                .filter(id -> !foundIds.contains(id))
-                .toList();
-
-        List<ManageInvoiceDto> newInvoices = this.createInvoicesFromInvoicing(invoicesToFind);
-
-        if (invoices == null || invoices.isEmpty()) {
-            return newInvoices;
-        }
-
-        invoices.addAll(newInvoices);
-        return invoices;
-    }
-
-
-    private List<ManageInvoiceDto> createInvoicesFromInvoicing(List<UUID> invoiceIds){
-        List<ManageInvoiceDto> invoicesQueue = new ArrayList<>();
-
-        for (UUID invoice : invoiceIds) {
-            InvoiceHttp response = invoiceHttpUUIDService.sendGetBookingHttpRequest(invoice);
-            this.invoiceImportAutomaticeHelperServiceImpl.createInvoice(response);
-        }
-        //FLUJO PARA ESPERAR MIENTRAS LAS BD SE SINCRONIZAN.
-        int maxAttempts = 3;
-        int delay = 1;
-        while (maxAttempts > 0) {
-            try {
-                invoicesQueue.addAll(manageInvoiceService.findSortedInvoicesByIdIn(invoiceIds));
-                break;
-            } catch (Exception exp) {
-                log.warn("Retrying invoice fetch. Attempts left: {}. Error: {}", maxAttempts, exp.getMessage());
-            }
-            maxAttempts--;
-            try {
-                TimeUnit.SECONDS.sleep(delay);
-                delay *= 2;
-            } catch (InterruptedException exp) {
-                Thread.currentThread().interrupt();
-            }
-        }
-
-        return invoicesQueue;
+        return this.manageInvoiceService.findSortedInvoicesByIdIn(invoiceIds);
     }
 
     private List<PaymentDetailDto> createPaymentDetailsTypeDepositQueue(List<UUID> deposits) {
