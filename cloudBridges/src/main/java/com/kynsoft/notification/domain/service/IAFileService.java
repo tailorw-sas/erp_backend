@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface IAFileService {
     UUID create(FileDto object);
+    void createAll(List<FileDto> objects);
     void update(FileDto object);
     void delete(FileDto object);
     FileDto findById(UUID id);

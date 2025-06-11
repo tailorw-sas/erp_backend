@@ -13,10 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AFileServiceImpl implements IAFileService {
@@ -34,6 +32,15 @@ public class AFileServiceImpl implements IAFileService {
     public UUID create(FileDto object) {
         AFile file = this.commandRepository.save(new AFile(object));
         return file.getId();
+    }
+
+    @Override
+    public void createAll(List<FileDto> objects) {
+        if(Objects.isNull(objects) || objects.isEmpty()){
+            throw new IllegalArgumentException("The fileDto list must not be null or empty");
+        }
+        List<AFile> afiles = objects.stream().map(AFile::new).collect(Collectors.toList());
+        this.commandRepository.saveAll(afiles);
     }
 
     @Override

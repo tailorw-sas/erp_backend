@@ -1,11 +1,14 @@
 package com.kynsoft.notification.controller;
 
+import com.kynsof.share.core.domain.request.FileRequest;
 import com.kynsof.share.core.domain.response.ApiError;
 import com.kynsof.share.core.domain.response.ApiResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
 import com.kynsoft.notification.application.command.file.confirm.ConfirmFileCommand;
 import com.kynsoft.notification.application.command.file.confirm.ConfirmFileMessage;
 import com.kynsoft.notification.application.command.file.confirm.ConfirmFileRequest;
+import com.kynsoft.notification.application.command.file.multiSaveFileS3.MultiSaveFileS3Command;
+import com.kynsoft.notification.application.command.file.multiSaveFileS3.MultiSaveFileS3Message;
 import com.kynsoft.notification.application.command.file.saveFileS3.SaveFileS3Command;
 import com.kynsoft.notification.application.command.file.saveFileS3.SaveFileS3Message;
 import org.slf4j.Logger;
@@ -16,6 +19,8 @@ import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/files")
@@ -45,6 +50,17 @@ public class FileController {
         ConfirmFileMessage response = mediator.send(command);
         return ResponseEntity.ok(ApiResponse.success(response));
 
+    }
+
+    @PostMapping(value = "multi-upload")
+        public Mono<ResponseEntity<ApiResponse<MultiSaveFileS3Message>>> uploadAll(@RequestBody List<FileRequest> fileRequests) {
+        return Mono.fromCallable(() -> {
+            MultiSaveFileS3Message response = this.mediator.send(new MultiSaveFileS3Command(fileRequests));
+            return ResponseEntity.ok(ApiResponse.success(response));
+        }).subscribeOn(Schedulers.boundedElastic()).onErrorResume((e) -> {
+            log.error("❌ Error uploading files: {}", e.getMessage(), e);
+            return Mono.just(ResponseEntity.internalServerError().body(ApiResponse.fail(new ApiError("Failed to upload files: " + e.getMessage()))));
+        });
     }
 }
 
