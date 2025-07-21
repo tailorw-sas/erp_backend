@@ -21,5 +21,7 @@ public class UserMeResponse implements IResponse, Serializable {
     private String lastName;
     private String image;
     private List<String> permissions;
-
+    private List<UUID> hotelsAccess;
+    private List<UUID> agenciesAccess;
+    private List<UUID> reportsAccess;
 }

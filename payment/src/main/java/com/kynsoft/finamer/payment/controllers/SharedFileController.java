@@ -4,8 +4,6 @@ import com.kynsof.share.core.domain.request.PageableUtil;
 import com.kynsof.share.core.domain.request.SearchRequest;
 import com.kynsof.share.core.domain.response.PaginatedResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
-import com.kynsoft.finamer.payment.application.command.paymentImport.payment.PaymentImportCommand;
-import com.kynsoft.finamer.payment.application.command.paymentImport.payment.PaymentImportRequest;
 import com.kynsoft.finamer.payment.application.command.shareFile.create.CreatePaymentShareFileCommand;
 import com.kynsoft.finamer.payment.application.command.shareFile.create.CreatePaymentShareFileMessage;
 import com.kynsoft.finamer.payment.application.command.shareFile.create.CreatePaymentShareFileRequest;
@@ -14,24 +12,17 @@ import com.kynsoft.finamer.payment.application.command.shareFile.delete.DeletePa
 import com.kynsoft.finamer.payment.application.command.shareFile.update.UpdatePaymentShareFileCommand;
 import com.kynsoft.finamer.payment.application.command.shareFile.update.UpdatePaymentShareFileMessage;
 import com.kynsoft.finamer.payment.application.command.shareFile.update.UpdatePaymentShareFileRequest;
-import com.kynsoft.finamer.payment.application.query.manageAgency.search.GetSearchAgencyQuery;
-import com.kynsoft.finamer.payment.application.query.objectResponse.AttachmentTypeResponse;
-import com.kynsoft.finamer.payment.application.query.payment.search.GetSearchPaymentQuery;
 import com.kynsoft.finamer.payment.application.query.shareFile.getById.FindPaymentShareFileByIdQuery;
 import com.kynsoft.finamer.payment.application.query.shareFile.search.GetShareFileQuery;
 import com.kynsoft.finamer.payment.application.query.shareFile.search.PaymentShareFileResponse;
-import com.kynsoft.finamer.payment.domain.dtoEnum.EImportPaymentType;
-import org.aspectj.bridge.IMessage;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -45,14 +36,6 @@ public class SharedFileController {
         this.mediator = mediator;
     }
 
-//    @PostMapping("/search")
-//    public ResponseEntity<?> search(@RequestBody SearchRequest request) {
-//        Pageable pageable = PageableUtil.createPageable(request);
-//
-//        GetShareFileQuery query = new GetShareFileQuery(pageable, request.getFilter(), request.getQuery());
-//        PaginatedResponse data = mediator.send(query);
-//        return ResponseEntity.ok(data);
-//    }
 
     @PostMapping("/search")
     public ResponseEntity<?> search(@RequestBody SearchRequest request) {
@@ -79,14 +62,6 @@ public class SharedFileController {
                     return Mono.just(ResponseEntity.ok(message));
                 });
     }
-
-//    @PostMapping()
-//    public ResponseEntity<?> create(@RequestBody CreatePaymentShareFileRequest request) {
-//        CreatePaymentShareFileCommand createCommand = CreatePaymentShareFileCommand.fromRequest(request);
-//        CreatePaymentShareFileMessage response = mediator.send(createCommand);
-//
-//        return ResponseEntity.ok(response);
-//    }
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<?> deleteById(@PathVariable UUID id) {

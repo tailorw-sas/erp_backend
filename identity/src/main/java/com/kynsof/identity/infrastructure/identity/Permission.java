@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -42,9 +41,8 @@ public class Permission {
     @OneToMany(mappedBy = "permission")
     private Set<UserPermissionBusiness> userPermissionBusinesses = new HashSet<>();
 
-    @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt= LocalDateTime.now();
 
     private Boolean isHighRisk;
     private Boolean isIT;

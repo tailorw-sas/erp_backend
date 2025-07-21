@@ -42,6 +42,12 @@
                     <version>0.0.1-SNAPSHOT</version>
                     <scope>compile</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.kynsoft.finamer</groupId>
+                    <artifactId>security-dev</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <scope>compile</scope>
+                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -59,6 +65,12 @@
                     <version>0.0.1-SNAPSHOT</version>
                     <scope>compile</scope>
                 </dependency>
+                <dependency>
+                    <groupId>com.kynsoft.finamer</groupId>
+                    <artifactId>security-qa</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <scope>compile</scope>
+                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -73,6 +85,12 @@
                 <dependency>
                     <groupId>com.kynsoft.finamer</groupId>
                     <artifactId>share</artifactId>
+                    <version>0.0.1-SNAPSHOT</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.kynsoft.finamer</groupId>
+                    <artifactId>security</artifactId>
                     <version>0.0.1-SNAPSHOT</version>
                     <scope>compile</scope>
                 </dependency>
@@ -104,133 +122,77 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-        <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-client</artifactId>
-        </dependency>
+        <!-- Spring Boot Core -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-        </dependency>
-
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver-dns-native-macos</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.jettison</groupId>
-            <artifactId>jettison</artifactId>
-        <version>1.4.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin.external.google</groupId>
-            <artifactId>android-json</artifactId>
-        <version>0.0.20131108.vaadin1</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId> org.springframework.data</groupId>
-            <artifactId>spring-data-envers</artifactId>
-        </dependency>
-
-        <!--Keycloack-->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-
-        <!-- Include RESTEasy Client API -->
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-client</artifactId>
-        <version>6.2.7.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-resource-server</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-oauth2-jose</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security.oauth</groupId>
-            <artifactId>spring-security-oauth2</artifactId>
-            <version>${spring-security-oauth2.version}</version>
-        </dependency>
-
+        <!-- Security & OAuth2 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- Database -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud Config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- Keycloak -->
+        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-admin-client</artifactId>
+            <version>24.0.1</version>
+        </dependency>
+
+        <!-- Utilities -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -238,16 +200,44 @@
         </dependency>
 
         <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-admin-client</artifactId>
-            <version>24.0.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Jakarta APIs -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
-            <version>3.15.6.Final</version>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
+
+        <!-- other dependencies -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
@@ -255,18 +245,75 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-        <version>2.0.1.Final</version>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-webflux-ui</artifactId>
+            <version>1.7.0</version>
         </dependency>
+
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
-            </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>jakarta.servlet</groupId>-->
+<!--            <artifactId>jakarta.servlet-api</artifactId>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.security</groupId>-->
+<!--            <artifactId>spring-security-test</artifactId>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.codehaus.jettison</groupId>-->
+<!--            <artifactId>jettison</artifactId>-->
+<!--        <version>1.4.0</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.vaadin.external.google</groupId>-->
+<!--            <artifactId>android-json</artifactId>-->
+<!--            <version>0.0.20131108.vaadin1</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId> org.springframework.data</groupId>-->
+<!--            <artifactId>spring-data-envers</artifactId>-->
+<!--        </dependency>-->
+
+        <!-- Include RESTEasy Client API -->
+<!--        <dependency>-->
+<!--            <groupId>org.jboss.resteasy</groupId>-->
+<!--            <artifactId>resteasy-client</artifactId>-->
+<!--        <version>6.2.7.Final</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.security</groupId>-->
+<!--            <artifactId>spring-security-oauth2-resource-server</artifactId>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.security.oauth</groupId>-->
+<!--            <artifactId>spring-security-oauth2</artifactId>-->
+<!--            <version>${spring-security-oauth2.version}</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>org.jboss.resteasy</groupId>-->
+<!--            <artifactId>resteasy-jaxrs</artifactId>-->
+<!--            <version>3.15.6.Final</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>javax.validation</groupId>-->
+<!--            <artifactId>validation-api</artifactId>-->
+<!--            <version>2.0.1.Final</version>-->
+<!--        </dependency>-->
+
     </dependencies>
     <build>
         <plugins>

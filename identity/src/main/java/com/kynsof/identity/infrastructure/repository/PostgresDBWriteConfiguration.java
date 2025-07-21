@@ -47,7 +47,6 @@ public class PostgresDBWriteConfiguration {
 
     @Primary
     @Bean(name = "writeTransactionManager")
-    //@ConfigurationProperties("spring.jpa")
     public PlatformTransactionManager transactionManager(
             @Qualifier("writeEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);

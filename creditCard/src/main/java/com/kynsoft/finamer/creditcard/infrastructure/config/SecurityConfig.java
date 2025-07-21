@@ -59,17 +59,5 @@ public class SecurityConfig {
     public ReactiveJwtDecoder jwtDecoder() {
     	return ReactiveJwtDecoders.fromIssuerLocation(jwkSetUri);
     }
-    
-//    @Bean
-//    @ConditionalOnProperty(prefix = "http", name = "cors-enabled", matchIfMissing = false, havingValue = "true")
-//    public CorsWebFilter corsFilter() {
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration config = corsProperties.getCors();
-//        if (config.getAllowedOrigins() != null && !config.getAllowedOrigins().isEmpty()) {
-//            source.registerCorsConfiguration("/**", config);
-//        }
-//        return new CorsWebFilter(source);
-//    }
-
 }
 

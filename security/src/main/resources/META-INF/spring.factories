@@ -1,0 +1,7 @@
+# Auto-configuración para Kynsoft Security
+#org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+#com.kynsoft.security.config.SecurityAutoConfiguration
+
+# Configuración de properties (opcional, pero recomendado)
+#org.springframework.boot.autoconfigure.AutoConfigurationImportFilter=\
+#com.kynsoft.security.config.SecurityAutoConfiguration

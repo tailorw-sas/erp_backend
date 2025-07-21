@@ -19,6 +19,8 @@ import com.kynsof.identity.application.command.auth.sendPasswordRecoveryOtp.Send
 import com.kynsof.identity.application.query.auth.RefreshTokenQuery;
 import com.kynsof.share.core.domain.response.ApiResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +38,15 @@ public class AuthController {
 
         this.mediator = mediator;
     }
+
+    @Operation(
+            summary = "Authenticate user",
+            description = "Authenticate user with username and password to get JWT token"
+    )
+    @ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Authentication successful"),
+            //@ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
     @PreAuthorize("permitAll()")
     @PostMapping("/authenticate")
     public Mono<ResponseEntity<TokenResponse>> authenticate(@RequestBody LoginRequest loginDTO) {
@@ -62,6 +73,10 @@ public class AuthController {
     }
 
 
+    @Operation(
+            summary = "Refresh JWT token",
+            description = "Refresh an expired JWT token using refresh token"
+    )
     @PostMapping("/refresh-token")
     //   @PreAuthorize("permitAll()")
     public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody TokenRefreshRequest request) {
