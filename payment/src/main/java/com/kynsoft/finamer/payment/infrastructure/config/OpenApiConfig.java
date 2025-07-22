@@ -1,4 +1,4 @@
-package com.kynsoft.report.infrastructure.config;
+package com.kynsoft.finamer.payment.infrastructure.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -15,8 +15,8 @@ public class OpenApiConfig {
 
     private Info apiInfo() {
         return new Info()
-                .title("Report Services")
-                .description("API Documentation Report Services")
+                .title("Payment Services")
+                .description("API Documentation Payment Services")
                 .version("1.0.0");
     }
 }

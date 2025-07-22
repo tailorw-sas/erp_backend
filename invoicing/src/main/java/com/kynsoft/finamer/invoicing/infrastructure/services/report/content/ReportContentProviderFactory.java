@@ -8,8 +8,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.NoSuchElementException;
 
-import static com.nimbusds.openid.connect.sdk.assurance.claims.ISO3166_1Alpha2CountryCode.RE;
-
 @Component
 public class ReportContentProviderFactory {
 

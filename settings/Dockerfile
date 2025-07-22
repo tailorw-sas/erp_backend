@@ -48,7 +48,7 @@ ENV ENVIRONMENT ${ENVIRONMENT}
 ARG DOCKER_HUB=false
 ARG ARTIFACT_VERSION=0.0.1-SNAPSHOT
 # Lista de artefactos a copiar (separados por espacios)
-ARG ARTIFACTS="share-dev audit-agent-dev"
+ARG ARTIFACTS="share-dev audit-agent-dev security-dev"
 
 RUN if [ "$DOCKER_HUB" = "false" ]; then \
       echo "Entorno local detectado, copiando artefactos locales..."; \
@@ -93,4 +93,4 @@ COPY --from=builder /build/target/settings-1.0.0.jar .
 RUN wget -O /app/jmx_prometheus_javaagent-0.20.0.jar https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.20.0/jmx_prometheus_javaagent-0.20.0.jar
 COPY jmx_exporter_config.yaml /app/jmx_exporter_config.yaml
 
-ENTRYPOINT [ "java", "-javaagent:/app/jmx_prometheus_javaagent-0.20.0.jar=9904:/app/jmx_exporter_config.yaml", "-jar", "/app/settings-1.0.0.jar" ]
+ENTRYPOINT ["java", "-javaagent:/app/jmx_prometheus_javaagent-0.20.0.jar=9904:/app/jmx_exporter_config.yaml", "-Xmx1024m", "-XX:+UseG1GC", "-jar", "/app/settings-1.0.0.jar"]

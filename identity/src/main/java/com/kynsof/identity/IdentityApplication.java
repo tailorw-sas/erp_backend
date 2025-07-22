@@ -12,10 +12,10 @@ import org.springframework.context.annotation.Import;
 
 @Slf4j
 @SpringBootApplication
-(exclude = {
-        ReactiveSecurityAutoConfiguration.class,
-        ReactiveOAuth2ResourceServerAutoConfiguration.class
-})
+        (exclude = {
+                ReactiveSecurityAutoConfiguration.class,
+                ReactiveOAuth2ResourceServerAutoConfiguration.class
+        })
 @Import({
         SecurityConfig.class,
         JwtAuthenticationConverter.class
