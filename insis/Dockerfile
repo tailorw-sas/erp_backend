@@ -92,4 +92,4 @@ RUN wget -O /app/jmx_prometheus_javaagent-0.20.0.jar https://repo1.maven.org/mav
 COPY jmx_exporter_config.yaml /app/jmx_exporter_config.yaml
 
 
-ENTRYPOINT ["java", "-javaagent:/app/jmx_prometheus_javaagent-0.20.0.jar=9904:/app/jmx_exporter_config.yaml", "-Xmx1024m", "-XX:+UseG1GC", "-jar", "/app/insis-1.0.0.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-javaagent:/app/jmx_prometheus_javaagent-0.20.0.jar=9904:/app/jmx_exporter_config.yaml", "-jar", "/app/insis-1.0.0.jar"]
