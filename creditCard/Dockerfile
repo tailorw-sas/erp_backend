@@ -45,7 +45,7 @@ ENV ENVIRONMENT ${ENVIRONMENT}
 ARG DOCKER_HUB=false
 ARG ARTIFACT_VERSION=0.0.1-SNAPSHOT
 # Lista de artefactos a copiar (separados por espacios)
-ARG ARTIFACTS="share-dev audit-agent-dev"
+ARG ARTIFACTS="share-dev audit-agent-dev security-dev"
 
 RUN if [ "$DOCKER_HUB" = "false" ]; then \
       echo "Entorno local detectado, copiando artefactos locales..."; \

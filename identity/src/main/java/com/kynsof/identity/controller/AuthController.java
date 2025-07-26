@@ -17,9 +17,13 @@ import com.kynsof.identity.application.command.auth.registry.UserRequest;
 import com.kynsof.identity.application.command.auth.sendPasswordRecoveryOtp.SendPasswordRecoveryOtpCommand;
 import com.kynsof.identity.application.command.auth.sendPasswordRecoveryOtp.SendPasswordRecoveryOtpMessage;
 import com.kynsof.identity.application.query.auth.RefreshTokenQuery;
+import com.kynsof.share.core.domain.response.ApiError;
 import com.kynsof.share.core.domain.response.ApiResponse;
 import com.kynsof.share.core.infrastructure.bus.IMediator;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +40,15 @@ public class AuthController {
 
         this.mediator = mediator;
     }
+
+    @Operation(
+            summary = "Authenticate user",
+            description = "Authenticate user with username and password to get JWT token"
+    )
+    @ApiResponses(value = {
+            //@ApiResponse(responseCode = "200", description = "Authentication successful"),
+            //@ApiResponse(responseCode = "401", description = "Invalid credentials")
+    })
     @PreAuthorize("permitAll()")
     @PostMapping("/authenticate")
     public Mono<ResponseEntity<TokenResponse>> authenticate(@RequestBody LoginRequest loginDTO) {
@@ -52,7 +65,6 @@ public class AuthController {
         return Mono.just(ResponseEntity.ok(response.getResult()));
     }
 
-    // @PreAuthorize("permitAll()")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> registerUser(@RequestBody UserRequest userRequest) {
         RegistryCommand command = new RegistryCommand(userRequest.getUserName(), userRequest.getEmail(), userRequest.getName(),
@@ -62,13 +74,39 @@ public class AuthController {
     }
 
 
+    @Operation(
+            summary = "Refresh JWT token",
+            description = "Refresh an expired JWT token using refresh token"
+    )
+
     @PostMapping("/refresh-token")
-    //   @PreAuthorize("permitAll()")
-    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(
+            @RequestBody TokenRefreshRequest request,
+            @RequestHeader(value = "Last-Activity", required = false) String lastActivity) {
+
+        // Validar inactividad
+        if (lastActivity != null) {
+            try {
+                long lastActivityTime = Long.parseLong(lastActivity);
+                long now = System.currentTimeMillis();
+                long inactiveTime = now - lastActivityTime;
+
+                if (inactiveTime > 900000) { // 15 minutos en ms
+                    // ✅ SOLUCIÓN: Usar tu constructor de ApiError
+                    ApiError error = new ApiError(401, "Session expired due to inactivity");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                            .body(ApiResponse.fail(error));
+                }
+            } catch (NumberFormatException e) {
+                // Ignorar si Last-Activity header es inválido
+                System.out.println("Invalid Last-Activity header: " + lastActivity);
+            }
+        }
+
+        // Tu lógica normal de refresh
         RefreshTokenQuery query = new RefreshTokenQuery(request.getRefreshToken());
         TokenResponse response = mediator.send(query);
         return ResponseEntity.ok(ApiResponse.success(response));
-
     }
 
     @PostMapping("/forgot-password")

@@ -20,7 +20,7 @@ VERSION="0.0.1-SNAPSHOT"
 
 # Si no se pasan argumentos, definir un conjunto por defecto
 if [ "$#" -eq 0 ]; then
-    microservices=("cloudBridges" "creditCard" "gateway" "identity" "insis" "invoicing" "payment" "report" "scheduler" "settings" "tcaInnsist")
+    microservices=("audit" "cloudBridges" "creditCard" "gateway" "identity" "insis" "invoicing" "payment" "report" "scheduler" "settings" "tcaInnsist")
 else
     microservices=("$@")
 fi
@@ -67,13 +67,15 @@ for ms in "${microservices[@]}"; do
     ||  "$ms" == "report"
     ||  "$ms" == "scheduler"
     ||  "$ms" == "tcaInnsist" ]]; then
-        artifacts=("share-dev")
+        artifacts=("share-dev" "security-dev")
     elif [[ "$ms" == "cloudBridges"
     || "$ms" == "creditCard"
     ||  "$ms" == "invoicing"
     ||  "$ms" == "payment"
     ||  "$ms" == "settings" ]]; then
-        artifacts=("share-dev" "audit-agent-dev")
+        artifacts=("share-dev" "security-dev" "audit-agent-dev")
+    elif [[ "$ms" == "audit"  ]]; then
+        artifacts=("security-dev")
     else
         log "${YELLOW}⚠️ No se definió un mapeo de artefactos para el microservicio: $ms. Saltando...${NC}"
         continue

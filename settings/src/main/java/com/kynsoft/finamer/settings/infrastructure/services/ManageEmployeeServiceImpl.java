@@ -147,7 +147,7 @@ public class ManageEmployeeServiceImpl implements IManageEmployeeService {
             data.getManagePermissionList().forEach(permission -> permissions.add(permission.getCode()));
             return new UserMeResponse(data.getId(),data.getLoginName(),
                    data.getEmail(), data.getFirstName(),
-                   data.getLastName(), null, permissions);
+                   data.getLastName(), null, permissions, null, null, null);
         }
         throw new BusinessNotFoundException(new GlobalBusinessException(DomainErrorMessage.MANAGE_EMPLOYEE_NOT_FOUND, new ErrorField("id", "Manage Employee not found.")));
     }

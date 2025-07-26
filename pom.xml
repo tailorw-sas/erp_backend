@@ -13,6 +13,7 @@
     </dependencies>
     <modules>
         <module>share</module>
+        <module>security</module>
         <module>audit-agent</module>
         <module>config</module>
         <module>gateway</module>

@@ -1,6 +1,5 @@
 package com.kynsof.audit.infrastructure.core.config;
 
-import com.kynsof.audit.infrastructure.core.SecurityContextThreadLocalFilter;
 import com.kynsof.audit.infrastructure.listener.AuditEntityListener;
 import com.kynsof.audit.infrastructure.service.AuditLoader;
 import com.kynsof.audit.infrastructure.service.kafka.ProducerAuditEventService;
@@ -9,14 +8,10 @@ import com.kynsof.audit.infrastructure.utils.SpringContext;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.retry.annotation.EnableRetry;
 
 @Configuration
 @ConditionalOnClass(AuditEntityListener.class)

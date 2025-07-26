@@ -20,7 +20,6 @@ public class UpdateRouteContext implements ApplicationListener<RefreshRoutesEven
 
     private final RouteDefinitionsContext definitionsContext;
 
-
     public RouteDefinitionsContext updateDefinitions() {
 
         List<String> services = discoveryClient.getServices();
@@ -31,16 +30,6 @@ public class UpdateRouteContext implements ApplicationListener<RefreshRoutesEven
             if (!serviceId.toUpperCase().equals("UNKNOWN")) {
                 List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
                 for (ServiceInstance instance : instances) {
-//                    String path = instance.getUri().toString();
-//                    URI uri;
-//                    try {
-//                        path = path.replace("http", "https");
-//                        uri = new URI(path);
-//                    } catch (URISyntaxException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    definitionsContext.add(serviceId.toLowerCase(), new RouteDTO(serviceId.toLowerCase(), "/" + serviceId.toLowerCase() + "/**", uri));
-
                     definitionsContext.add(serviceId.toLowerCase(), new RouteDTO(serviceId.toLowerCase(), "/" + serviceId.toLowerCase() + "/**", instance.getUri()));
                 }
             }

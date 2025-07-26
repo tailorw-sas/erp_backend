@@ -18,11 +18,5 @@ public class OpenApiConfig {
                 .title("Report Services")
                 .description("API Documentation Report Services")
                 .version("1.0.0");
-                /*.license(new License()
-                        .name(openApiProperties.getLicense())
-                        .url(openApiProperties.getLicenseUrl()))
-                .termsOfService(openApiProperties.getTermsOfService())
-                .contact(openApiProperties.getContact())
-                .extensions(openApiProperties.getExtensions());*/
     }
 }
